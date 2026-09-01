@@ -7,16 +7,18 @@
 
 @layer base {
   html {
+    background-color: #000000;
     scroll-behavior: smooth;
   }
   body {
     margin: 0;
-    background-color: #fafbfc;
-    color: #0f172a;
+    background-color: #000000;
+    color: #e2e8f0;
     font-family: var(--font-sans);
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     overflow-x: hidden;
+    color-scheme: dark;
   }
   * {
     box-sizing: border-box;
@@ -50,9 +52,9 @@
   background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-  background: #cbd5e1;
+  background: #2b3441;
   border-radius: 3px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #94a3b8;
+  background: #475569;
 }

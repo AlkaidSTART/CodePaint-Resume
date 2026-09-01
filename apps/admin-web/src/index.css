@@ -6,13 +6,17 @@
 }
 
 @layer base {
+  html {
+    background-color: #000000;
+  }
   body {
     margin: 0;
-    background-color: #fafbfc;
-    color: #0f172a;
+    background-color: #000000;
+    color: #e2e8f0;
     font-family: var(--font-sans);
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+    color-scheme: dark;
   }
   * {
     box-sizing: border-box;

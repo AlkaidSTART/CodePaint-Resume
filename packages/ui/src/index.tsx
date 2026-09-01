@@ -8,10 +8,10 @@ export function Button({
 }: PropsWithChildren<ButtonHTMLAttributes<HTMLButtonElement> & { variant?: "primary" | "secondary" | "outline" | "ghost" }>) {
   const base = "inline-flex min-h-10 items-center justify-center gap-2 rounded-md px-4 text-sm font-medium transition-all duration-150 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sky-500 disabled:cursor-not-allowed disabled:opacity-50 select-none cursor-pointer";
   const variants = {
-    primary: "bg-slate-900 text-white shadow-xs hover:bg-slate-800 active:scale-[0.98]",
-    secondary: "bg-slate-100 text-slate-900 hover:bg-slate-200 active:scale-[0.98]",
-    outline: "border border-slate-200 bg-white text-slate-800 shadow-xs hover:bg-slate-50 hover:border-slate-300 active:scale-[0.98]",
-    ghost: "text-slate-600 hover:bg-slate-100 hover:text-slate-900 active:scale-[0.98]",
+    primary: "bg-sky-400 text-slate-950 shadow-xs hover:bg-sky-300 active:scale-[0.98]",
+    secondary: "bg-white/10 text-slate-100 hover:bg-white/15 active:scale-[0.98]",
+    outline: "border border-white/15 bg-white/[0.04] text-slate-100 shadow-xs hover:bg-white/[0.08] hover:border-white/25 active:scale-[0.98]",
+    ghost: "text-slate-300 hover:bg-white/10 hover:text-white active:scale-[0.98]",
   };
   return (
     <button className={`${base} ${variants[variant]} ${className}`} {...props}>
@@ -25,11 +25,11 @@ export function StatusMark({
   tone = "neutral",
 }: PropsWithChildren<{ tone?: "neutral" | "blue" | "green" | "red" | "amber" }>) {
   const toneClass = {
-    neutral: "bg-slate-100 text-slate-700 border-slate-200/60",
-    blue: "bg-sky-50/80 text-sky-700 border-sky-200/60",
-    green: "bg-emerald-50/80 text-emerald-700 border-emerald-200/60",
-    red: "bg-rose-50/80 text-rose-700 border-rose-200/60",
-    amber: "bg-amber-50/80 text-amber-700 border-amber-200/60",
+    neutral: "bg-white/10 text-slate-200 border-white/10",
+    blue: "bg-sky-500/15 text-sky-300 border-sky-400/20",
+    green: "bg-emerald-500/15 text-emerald-300 border-emerald-400/20",
+    red: "bg-rose-500/15 text-rose-300 border-rose-400/20",
+    amber: "bg-amber-500/15 text-amber-300 border-amber-400/20",
   }[tone ?? "neutral"];
 
   const dotClass = {
@@ -50,7 +50,7 @@ export function StatusMark({
 
 export function SectionLabel({ children }: PropsWithChildren) {
   return (
-    <p className="mb-2 text-xs font-semibold uppercase tracking-[0.14em] text-sky-600">
+    <p className="mb-2 text-xs font-semibold uppercase tracking-[0.14em] text-sky-400">
       {children}
     </p>
   );

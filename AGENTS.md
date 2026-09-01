@@ -9,7 +9,7 @@ CodePaint Studio 招新平台采用两个 React 应用、一个 Go API 和共享
 ```text
 apps/public-web  -> 普通用户端：公开招新、报名、个人状态
 apps/admin-web   -> 招新成员后台：报名处理、解析、筛选、跟进
-apps/api         -> Go/Gin API、认证、RBAC、异步任务
+backend         -> Go/Gin API、认证、RBAC、异步任务
 packages/*       -> API client、类型、基础 UI、认证和工具
 ```
 
@@ -35,7 +35,7 @@ packages/*       -> API client、类型、基础 UI、认证和工具
 | --- | --- | --- |
 | 通用功能或 Bug | `dev-agent` | `architecture.md`、`code-quality.md`、`security.md` |
 | `public-web` / `admin-web` | `frontend-agent` | `frontend.md`、`frontend-state.md`、`frontend-components.md`、`frontend-performance.md` |
-| `apps/api` / 数据 / 任务 | `backend-agent` | `backend.md`、`backend-api.md`、`backend-service.md`、`backend-database.md`、`security.md` |
+| `backend` / 数据 / 任务 | `backend-agent` | `backend.md`、`backend-api.md`、`backend-service.md`、`backend-database.md`、`security.md` |
 | 测试、验证、质量门禁 | `test-agent` | `code-quality.md`、`error-handling.md`、相关 checklist |
 | Review | `review-agent` | `review` checklist、全部相关规则 |
 | 部署和流水线 | `deploy-agent` | `git.md`、`release` checklist、`security.md` |

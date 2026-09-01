@@ -1,16 +1,17 @@
 package repository
 
 import (
+	"context"
 	"time"
 
-	"github.com/codepaint-studio/resumeflow/apps/api/internal/domain"
+	"github.com/codepaint-studio/resumeflow/backend/internal/domain"
 )
 
 type RecruitmentRepository interface {
-	Roles() []domain.Role
-	Dashboard() domain.Dashboard
-	Applications() []domain.Application
-	Tasks() []domain.Task
+	Roles(context.Context, string) ([]domain.Role, error)
+	Dashboard(context.Context, string) (domain.Dashboard, error)
+	Applications(context.Context, string) ([]domain.Application, error)
+	Tasks(context.Context, string) ([]domain.Task, error)
 }
 
 type demoRepository struct {
@@ -31,7 +32,15 @@ func NewDemo() RecruitmentRepository {
 	}
 }
 
-func (r *demoRepository) Roles() []domain.Role               { return r.roles }
-func (r *demoRepository) Dashboard() domain.Dashboard        { return r.data }
-func (r *demoRepository) Applications() []domain.Application { return r.data.RecentApplications }
-func (r *demoRepository) Tasks() []domain.Task               { return r.data.Tasks }
+func (r *demoRepository) Roles(context.Context, string) ([]domain.Role, error) {
+	return r.roles, nil
+}
+func (r *demoRepository) Dashboard(context.Context, string) (domain.Dashboard, error) {
+	return r.data, nil
+}
+func (r *demoRepository) Applications(context.Context, string) ([]domain.Application, error) {
+	return r.data.RecentApplications, nil
+}
+func (r *demoRepository) Tasks(context.Context, string) ([]domain.Task, error) {
+	return r.data.Tasks, nil
+}

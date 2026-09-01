@@ -6,7 +6,7 @@
 
 ## 适用任务
 
-- `apps/api` 的 HTTP 接口、服务、仓储和中间件；
+- `backend` 的 HTTP 接口、服务、仓储和中间件；
 - PostgreSQL schema、迁移、索引和查询；
 - Redis/Asynq 解析任务、重试和状态机；
 - 对象存储、邮件接收、OCR/LLM Provider 适配；

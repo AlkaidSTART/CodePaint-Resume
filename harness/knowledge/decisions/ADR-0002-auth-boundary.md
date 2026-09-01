@@ -11,10 +11,10 @@ The monorepo has two React applications and a Go API. A shared TypeScript packag
 ## Decision
 
 - Rename the frontend-only package to `@codepaint/auth-client`.
-- Keep authentication, principal construction, session parsing and RBAC middleware in `apps/api/internal/auth`.
+- Keep authentication, principal construction, session parsing and RBAC middleware in `backend/internal/auth`.
 - Frontend role checks may hide or redirect UI, but never authorize API access.
 - The current `X-Demo-Role` parser remains development-only and must be replaced by HttpOnly session or bearer-token validation before production.
 
 ## Consequences
 
-The dependency direction is explicit: React apps depend on `packages/auth-client`; Go handlers depend on `apps/api/internal/auth`; neither side imports the other implementation.
+The dependency direction is explicit: React apps depend on `packages/auth-client`; Go handlers depend on `backend/internal/auth`; neither side imports the other implementation.

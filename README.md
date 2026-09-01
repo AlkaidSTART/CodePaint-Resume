@@ -18,8 +18,8 @@ make api          # http://localhost:8080
 
 - `apps/public-web`: 公开招新、报名和个人状态
 - `apps/admin-web`: recruiter 工作台
-- `apps/api`: Go/Gin API、后端 auth/RBAC 和 worker 入口
+- `backend`: Go/Gin API、后端 auth/RBAC 和 worker 入口
 - `packages/*`: 类型、API client、前端 auth-client、工具和基础 UI
 - `docs`: PRD、TDD、API 与 UI 设计约定
 
-当前前端使用少量 demo 数据展示核心信息架构；API 已提供 `/api/v1` 公开资源、认证占位和 recruiter 受保护工作台骨架。`packages/auth-client` 只服务前端展示和路由体验，真正的认证与 RBAC 位于 `apps/api/internal/auth`，下一步接入 PostgreSQL repository、持久化会话和 Asynq pipeline。
+当前前端使用少量 demo 数据展示核心信息架构；API 已提供 `/api/v1` 公开资源、认证占位和 recruiter 受保护工作台骨架。`packages/auth-client` 只服务前端展示和路由体验，真正的认证与 RBAC 位于 `backend/internal/auth`，下一步接入 PostgreSQL repository、持久化会话和 Asynq pipeline。

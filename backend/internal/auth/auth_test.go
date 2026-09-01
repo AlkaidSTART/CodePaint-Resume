@@ -11,7 +11,7 @@ import (
 func TestAuthenticateDoesNotTrustDemoHeaderWhenDisabled(t *testing.T) {
 	gin.SetMode(gin.TestMode)
 	r := gin.New()
-	r.Use(Authenticate(false))
+	r.Use(Authenticate(false, nil))
 	r.GET("/workspace", RequireRole("recruiter"), func(c *gin.Context) { c.Status(http.StatusNoContent) })
 
 	req := httptest.NewRequest(http.MethodGet, "/workspace", nil)
@@ -27,7 +27,7 @@ func TestAuthenticateDoesNotTrustDemoHeaderWhenDisabled(t *testing.T) {
 func TestAuthenticateAcceptsDemoHeaderWhenEnabled(t *testing.T) {
 	gin.SetMode(gin.TestMode)
 	r := gin.New()
-	r.Use(Authenticate(true))
+	r.Use(Authenticate(true, nil))
 	r.GET("/workspace", RequireRole("recruiter"), func(c *gin.Context) { c.Status(http.StatusNoContent) })
 
 	req := httptest.NewRequest(http.MethodGet, "/workspace", nil)

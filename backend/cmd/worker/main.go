@@ -5,6 +5,7 @@ import (
 	"log"
 
 	"github.com/codepaint-studio/resumeflow/backend/internal/config"
+	"github.com/codepaint-studio/resumeflow/backend/internal/task"
 	"github.com/hibiken/asynq"
 )
 
@@ -19,8 +20,8 @@ func main() {
 		Queues:      map[string]int{"default": 1, "resume": 4, "mailbox": 2},
 	})
 	mux := asynq.NewServeMux()
-	mux.HandleFunc(TaskResumeParse, func(ctx context.Context, task *asynq.Task) error {
-		log.Printf("resume parse task received payload=%s", task.Payload())
+	mux.HandleFunc(task.ResumeParse, func(ctx context.Context, item *asynq.Task) error {
+		log.Printf("resume parse task received payload=%s", item.Payload())
 		return nil
 	})
 	log.Printf("resumeflow worker listening on %s", cfg.RedisURL)
@@ -28,5 +29,3 @@ func main() {
 		log.Fatal(err)
 	}
 }
-
-const TaskResumeParse = "resume.parse"

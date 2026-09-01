@@ -17,7 +17,7 @@ const principalKey = "auth.principal"
 
 // Authenticate is the API-side boundary for session or bearer-token parsing.
 // The demo header keeps local development runnable until a persistent session store is wired.
-func Authenticate(allowDemoHeader bool) gin.HandlerFunc {
+func Authenticate(allowDemoHeader bool, sessions *Service) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		c.Set("request_id", "req_"+uuid.NewString())
 		if allowDemoHeader {
@@ -27,6 +27,12 @@ func Authenticate(allowDemoHeader bool) gin.HandlerFunc {
 				return
 			}
 			c.Set(principalKey, Principal{UserID: "usr_demo", Roles: []string{role}})
+		} else if sessions != nil {
+			if cookie, err := c.Cookie("codepaint_session"); err == nil {
+				if principal, err := sessions.Principal(c.Request.Context(), cookie); err == nil {
+					c.Set(principalKey, principal)
+				}
+			}
 		}
 		c.Next()
 	}

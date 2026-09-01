@@ -33,12 +33,13 @@ packages/*       -> API client、类型、基础 UI、认证和工具
 
 | 任务 | 主 Agent | 必看约束 |
 | --- | --- | --- |
-| 通用功能或 Bug | `dev-agent` | `architecture.md`、`code-quality.md` |
-| `public-web` / `admin-web` | `frontend-agent` | `frontend.md`、`architecture.md` |
-| `apps/api` / 数据 / 任务 | `backend-agent` | `backend.md`、`security.md` |
-| 测试、验证、质量门禁 | `test-agent` | `code-quality.md`、相关 checklist |
+| 通用功能或 Bug | `dev-agent` | `architecture.md`、`code-quality.md`、`security.md` |
+| `public-web` / `admin-web` | `frontend-agent` | `frontend.md`、`frontend-state.md`、`frontend-components.md`、`frontend-performance.md` |
+| `apps/api` / 数据 / 任务 | `backend-agent` | `backend.md`、`backend-api.md`、`backend-service.md`、`backend-database.md`、`security.md` |
+| 测试、验证、质量门禁 | `test-agent` | `code-quality.md`、`error-handling.md`、相关 checklist |
 | Review | `review-agent` | `review` checklist、全部相关规则 |
-| 部署和流水线 | `deploy-agent` | `git.md`、`release` checklist |
+| 部署和流水线 | `deploy-agent` | `git.md`、`release` checklist、`security.md` |
+| 运行环境和事故 | `ops-agent` | `security.md`、`backend.md`、`release` checklist |
 
 ## 不可违反的项目规则
 

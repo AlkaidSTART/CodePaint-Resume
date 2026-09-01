@@ -1,0 +1,4 @@
+@import "tailwindcss";
+
+@theme { --font-sans: "Avenir Next", "Helvetica Neue", sans-serif; }
+@layer base { body { margin: 0; background: #fff; color: #111; font-family: var(--font-sans); } * { box-sizing: border-box; } }

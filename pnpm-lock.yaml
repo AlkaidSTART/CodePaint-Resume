@@ -23,9 +23,9 @@ importers:
       '@codepaint/api-client':
         specifier: workspace:*
         version: link:../../packages/api-client
-      '@codepaint/auth':
+      '@codepaint/auth-client':
         specifier: workspace:*
-        version: link:../../packages/auth
+        version: link:../../packages/auth-client
       '@codepaint/types':
         specifier: workspace:*
         version: link:../../packages/types
@@ -66,9 +66,9 @@ importers:
       '@codepaint/api-client':
         specifier: workspace:*
         version: link:../../packages/api-client
-      '@codepaint/auth':
+      '@codepaint/auth-client':
         specifier: workspace:*
-        version: link:../../packages/auth
+        version: link:../../packages/auth-client
       '@codepaint/types':
         specifier: workspace:*
         version: link:../../packages/types
@@ -110,7 +110,7 @@ importers:
         specifier: workspace:*
         version: link:../types
 
-  packages/auth:
+  packages/auth-client:
     dependencies:
       '@codepaint/types':
         specifier: workspace:*

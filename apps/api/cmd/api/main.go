@@ -5,6 +5,7 @@ import (
 	"os"
 	"time"
 
+	"github.com/codepaint-studio/resumeflow/apps/api/internal/auth"
 	"github.com/gin-gonic/gin"
 )
 
@@ -37,19 +38,11 @@ type Task struct {
 func respond(c *gin.Context, status int, data any) {
 	c.JSON(status, gin.H{"data": data, "request_id": "req_local_demo"})
 }
-func requireRecruiter(c *gin.Context) {
-	if c.GetHeader("X-Demo-Role") != "recruiter" {
-		respond(c, http.StatusForbidden, gin.H{"error": gin.H{"code": "FORBIDDEN", "message": "需要招新成员权限"}})
-		c.Abort()
-		return
-	}
-	c.Next()
-}
-
 func main() {
 	r := gin.New()
 	r.Use(gin.Logger(), gin.Recovery())
 	r.GET("/healthz", func(c *gin.Context) { respond(c, http.StatusOK, gin.H{"status": "ok", "service": "resumeflow-api"}) })
+	r.Use(auth.Authenticate())
 	v1 := r.Group("/api/v1")
 	v1.GET("/public/recruitment", func(c *gin.Context) {
 		respond(c, http.StatusOK, gin.H{"title": "一起把想法做成真正能运行的作品", "intro": "CodePaint Studio 2026 秋季招新"})
@@ -61,7 +54,7 @@ func main() {
 		respond(c, http.StatusCreated, gin.H{"user": gin.H{"id": "usr_demo", "roles": []string{"user"}, "status": "active"}})
 	})
 	v1.GET("/auth/me", func(c *gin.Context) { respond(c, http.StatusOK, gin.H{"user": nil}) })
-	workspace := v1.Group("/workspace", requireRecruiter)
+	workspace := v1.Group("/workspace", auth.RequireRole("recruiter"))
 	workspace.GET("/dashboard", func(c *gin.Context) {
 		respond(c, http.StatusOK, gin.H{"pendingReview": 12, "processing": 4, "failed": 1, "newThisWeek": 21, "recentApplications": []Application{{"app_001", "林同学", "工程", "engineering", "submitted", time.Now().Format(time.RFC3339), "希望参与工具开发", []string{"Go", "React", "PostgreSQL"}, 89}}, "tasks": []Task{{"task_001", "林同学_resume.pdf", "completed", "校验完成", "今天 09:12"}}})
 	})

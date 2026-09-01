@@ -31,3 +31,5 @@ deploy/compose/data/
 *.log
 
 # Keep product and engineering documentation versioned.
+node_modules/
+docs/*

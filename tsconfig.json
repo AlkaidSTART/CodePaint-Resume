@@ -10,7 +10,7 @@
     "paths": {
       "@codepaint/types": ["packages/types/src/index.ts"],
       "@codepaint/utils": ["packages/utils/src/index.ts"],
-      "@codepaint/auth": ["packages/auth/src/index.ts"],
+      "@codepaint/auth-client": ["packages/auth-client/src/index.ts"],
       "@codepaint/api-client": ["packages/api-client/src/index.ts"],
       "@codepaint/ui": ["packages/ui/src/index.tsx"]
     },

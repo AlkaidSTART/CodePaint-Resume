@@ -12,7 +12,7 @@ pnpm dev:admin    # http://localhost:5174
 make api          # http://localhost:8080
 ```
 
-本地依赖可通过 `make infra` 启动 PostgreSQL、Redis 和 MinIO。数据库初始化脚本位于 `migrations/001_init.sql`。
+本地依赖可通过 `make infra` 启动 PostgreSQL、Redis 和 MinIO。数据库迁移可从仓库根目录执行 `make migrate`，也可通过 `MIGRATIONS_DIR` 指定迁移目录。
 
 ## 目录
 
@@ -22,4 +22,6 @@ make api          # http://localhost:8080
 - `packages/*`: 类型、API client、前端 auth-client、工具和基础 UI
 - `docs`: PRD、TDD、API 与 UI 设计约定
 
-当前前端使用少量 demo 数据展示核心信息架构；API 已提供 `/api/v1` 公开资源、认证占位和 recruiter 受保护工作台骨架。`packages/auth-client` 只服务前端展示和路由体验，真正的认证与 RBAC 位于 `backend/internal/auth`，下一步接入 PostgreSQL repository、持久化会话和 Asynq pipeline。
+公开端方向列表和后台概览已经通过 `packages/api-client` 读取 Go API，并提供加载、空数据、失败和重试状态。配置 `DATABASE_URL` 后 API 使用 PostgreSQL repository 和 HttpOnly session；未配置数据库时只保留公开 Demo 数据，登录接口返回未配置提示。`ALLOW_DEMO_AUTH=true` 仅用于本地开发，生产环境必须关闭。
+
+Worker 已接入 Asynq、校验稳定任务 ID 并避免把任务 payload 写入日志；OCR、LLM、对象存储和解析结果持久化仍需在真实 Provider 配置后接通。

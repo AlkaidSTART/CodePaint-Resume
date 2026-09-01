@@ -2,6 +2,9 @@ package main
 
 import (
 	"context"
+	"encoding/json"
+	"errors"
+	"fmt"
 	"log"
 
 	"github.com/codepaint-studio/resumeflow/backend/internal/config"
@@ -21,7 +24,14 @@ func main() {
 	})
 	mux := asynq.NewServeMux()
 	mux.HandleFunc(task.ResumeParse, func(ctx context.Context, item *asynq.Task) error {
-		log.Printf("resume parse task received payload=%s", item.Payload())
+		var payload task.ResumeParsePayload
+		if err := json.Unmarshal(item.Payload(), &payload); err != nil {
+			return fmt.Errorf("decode resume parse task: %w", err)
+		}
+		if payload.WorkspaceID == "" || payload.ResumeID == "" || payload.ParseRunID == "" {
+			return errors.New("resume parse task has incomplete identifiers")
+		}
+		log.Printf("resume parse task accepted type=%s", task.ResumeParse)
 		return nil
 	})
 	log.Printf("resumeflow worker listening on %s", cfg.RedisURL)

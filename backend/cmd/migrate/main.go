@@ -24,7 +24,9 @@ func main() {
 	directory := os.Getenv("MIGRATIONS_DIR")
 	if directory == "" {
 		workingDir, err := os.Getwd()
-		if err != nil { log.Fatal(err) }
+		if err != nil {
+			log.Fatal(err)
+		}
 		directory = filepath.Join(workingDir, "migrations")
 		if _, err := os.Stat(directory); os.IsNotExist(err) {
 			directory = filepath.Join(workingDir, "..", "migrations")

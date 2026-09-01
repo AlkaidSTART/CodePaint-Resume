@@ -3,6 +3,8 @@ package auth
 import (
 	"net/http"
 
+	"github.com/google/uuid"
+
 	"github.com/gin-gonic/gin"
 )
 
@@ -15,10 +17,15 @@ const principalKey = "auth.principal"
 
 // Authenticate is the API-side boundary for session or bearer-token parsing.
 // The demo header keeps local development runnable until a persistent session store is wired.
-func Authenticate() gin.HandlerFunc {
+func Authenticate(allowDemoHeader bool) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		role := c.GetHeader("X-Demo-Role")
-		if role != "" {
+		c.Set("request_id", "req_"+uuid.NewString())
+		if allowDemoHeader {
+			role := c.GetHeader("X-Demo-Role")
+			if role == "" {
+				c.Next()
+				return
+			}
 			c.Set(principalKey, Principal{UserID: "usr_demo", Roles: []string{role}})
 		}
 		c.Next()
@@ -32,7 +39,7 @@ func RequireRole(role string) gin.HandlerFunc {
 			c.JSON(http.StatusForbidden, gin.H{
 				"data":       nil,
 				"error":      gin.H{"code": "FORBIDDEN", "message": "需要招新成员权限"},
-				"request_id": "req_local_demo",
+				"request_id": c.GetString("request_id"),
 			})
 			c.Abort()
 			return

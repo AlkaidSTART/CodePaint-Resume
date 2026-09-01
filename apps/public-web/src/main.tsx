@@ -11,7 +11,6 @@ import {
   Trophy,
   Briefcase,
   BookOpen,
-  Flame,
   Search,
   Terminal,
   Cpu,
@@ -19,6 +18,11 @@ import {
   Zap,
 } from "lucide-react";
 import { ApplyModal } from "./ApplyModal";
+import { ThreeHeroBackground } from "./components/ThreeHeroBackground";
+import { ThreeWaveScene } from "./components/ThreeWaveScene";
+import { ThreeTracks } from "./components/ThreeTracks";
+import { FloatingTechBadges } from "./components/FloatingTechBadges";
+import { AlumniDestinations } from "./components/AlumniDestinations";
 import "./index.css";
 
 function Header({ onOpenApply }: { onOpenApply: (role?: string) => void }) {
@@ -59,6 +63,7 @@ function Header({ onOpenApply }: { onOpenApply: (role?: string) => void }) {
 
         <nav className="hidden items-center gap-8 text-xs font-medium text-slate-600 md:flex">
           <a href="#stats" className="transition hover:text-slate-900">成果战报</a>
+          <a href="#alumni" className="transition hover:text-slate-900">学长去向</a>
           <a href="#roles" className="transition hover:text-slate-900">招新双赛道</a>
           <a href="#growth" className="transition hover:text-slate-900">培养体系</a>
           <a href="#projects" className="transition hover:text-slate-900">实战交付</a>
@@ -278,12 +283,17 @@ function Roles({ onOpenApply }: { onOpenApply: (role?: string) => void }) {
               </p>
             </div>
 
-            <Button
-              onClick={() => onOpenApply(current.id)}
-              className="h-10 px-5 text-xs font-semibold shadow-xs shrink-0 self-start lg:self-center"
-            >
-              投递 {current.name} <ArrowRight className="h-3.5 w-3.5" />
-            </Button>
+            <div className="flex items-center gap-3 shrink-0 self-start lg:self-center">
+              <div className="hidden sm:block h-16 w-24 rounded-lg border border-slate-100 bg-slate-50/50 p-1 shadow-2xs overflow-hidden">
+                <ThreeTracks type={activeTab} />
+              </div>
+              <Button
+                onClick={() => onOpenApply(current.id)}
+                className="h-10 px-5 text-xs font-semibold shadow-xs shrink-0"
+              >
+                投递 {current.name} <ArrowRight className="h-3.5 w-3.5" />
+              </Button>
+            </div>
           </div>
 
           <div className="mt-8 grid gap-4 sm:grid-cols-3">
@@ -569,8 +579,9 @@ function FAQ() {
 
 function BottomCallout({ onOpenApply }: { onOpenApply: (role?: string) => void }) {
   return (
-    <section className="border-t border-slate-200/80 bg-gradient-to-b from-slate-900 to-slate-950 px-6 py-20 text-white">
-      <div className="mx-auto max-w-4xl text-center">
+    <section className="relative overflow-hidden border-t border-slate-200/80 bg-gradient-to-b from-slate-900 to-slate-950 px-6 py-24 text-white">
+      <ThreeWaveScene />
+      <div className="relative z-10 mx-auto max-w-4xl text-center">
         <span className="inline-flex items-center gap-1.5 rounded-full bg-white/10 px-3 py-1 text-xs font-medium text-sky-300">
           <Sparkles className="h-3.5 w-3.5" />
           加入码绘 · 码上就绘
@@ -611,81 +622,41 @@ function App() {
 
       <main>
         {/* Hero Section */}
-        <section className="relative overflow-hidden border-b border-slate-200/80 bg-gradient-to-b from-white via-white to-slate-50/50 px-6 py-20 md:py-32">
-          <div className="mx-auto max-w-6xl">
-            <div className="grid gap-12 lg:grid-cols-12 lg:items-center">
-              <div className="lg:col-span-7">
-                <div className="inline-flex items-center gap-2 rounded-full border border-sky-200/80 bg-sky-50/80 px-3 py-1 text-xs font-medium text-sky-700">
-                  <span className="h-1.5 w-1.5 rounded-full bg-sky-500 animate-pulse" />
-                  2026 秋季招新正式启动 · 面向全校技术与设计爱好者
-                </div>
-                <h1 className="mt-6 text-4xl font-semibold tracking-tight text-slate-950 sm:text-6xl sm:leading-[1.12]">
-                  致力于大前端、全栈与 AIGC 的<br />
-                  <span className="text-sky-600">软创实践型工作室</span>
-                </h1>
-                <p className="mt-6 max-w-xl text-sm leading-relaxed text-slate-600 sm:text-base">
-                  CodePaint（码绘）工作室围绕「提升能力、高质量就业」为愿景。聚焦<strong>开发（前端/全栈）</strong>与<strong>AIGC（大模型/Agent应用）</strong>两大核心赛道，提供成体系学习路线、企业级实战与大厂 1v1 就业内推辅导。
-                </p>
-                <div className="mt-8 flex flex-wrap items-center gap-4">
-                  <Button
-                    onClick={() => openApply()}
-                    className="h-11 px-6 text-xs sm:text-sm font-semibold shadow-sm"
-                  >
-                    开始在线报名 <ArrowRight className="h-4 w-4" />
-                  </Button>
-                  <a href="#roles">
-                    <Button variant="outline" className="h-11 px-5 text-xs sm:text-sm font-medium">
-                      查看招新方向
-                    </Button>
-                  </a>
-                </div>
-              </div>
-
-              <div className="lg:col-span-5">
-                <div className="relative rounded-2xl border border-slate-200/80 bg-white p-6 shadow-sm">
-                  <div className="flex items-center justify-between border-b border-slate-100 pb-4">
-                    <div className="flex items-center gap-2">
-                      <span className="h-2.5 w-2.5 rounded-full bg-rose-400" />
-                      <span className="h-2.5 w-2.5 rounded-full bg-amber-400" />
-                      <span className="h-2.5 w-2.5 rounded-full bg-emerald-400" />
-                    </div>
-                    <div className="flex items-center gap-1.5 font-mono text-xs font-medium text-slate-400">
-                      <img src="/cp.webp" alt="cp" className="h-3.5 w-3.5 rounded-xs" />
-                      CodePaint_Manifesto.ts
-                    </div>
-                  </div>
-
-                  <div className="space-y-4 pt-5 text-xs">
-                    <div className="rounded-xl bg-slate-50/80 p-4 border border-slate-100/80">
-                      <p className="font-mono text-slate-400">// 初衷与愿景</p>
-                      <p className="mt-1 font-medium text-slate-900 leading-relaxed">
-                        “学生提升能力与高质量就业，教师产学研合作与专业发展。”
-                      </p>
-                    </div>
-
-                    <div className="grid grid-cols-2 gap-3 font-mono">
-                      <div className="rounded-xl border border-slate-100 bg-slate-50/50 p-3.5">
-                        <span className="text-[10px] text-slate-400">TRACKS</span>
-                        <p className="mt-0.5 text-xs font-semibold text-slate-800">开发 · AIGC 智能体</p>
-                      </div>
-                      <div className="rounded-xl border border-slate-100 bg-slate-50/50 p-3.5">
-                        <span className="text-[10px] text-slate-400">CULTURE</span>
-                        <p className="mt-0.5 text-xs font-semibold text-slate-800">学以致用 · 老带新</p>
-                      </div>
-                    </div>
-
-                    <div className="rounded-xl border border-emerald-100 bg-emerald-50/50 p-3 text-[11px] text-emerald-800 flex items-center gap-2">
-                      <Flame className="h-4 w-4 text-emerald-600 shrink-0" />
-                      <span>26届全员暑期实习落实 · 7人斩获腾讯/七牛云大厂 Offer</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
+        <section className="relative overflow-hidden border-b border-slate-200/80 bg-gradient-to-b from-white via-white to-slate-50/50 px-6 py-20 md:py-28 bg-grid-pattern text-center">
+          <ThreeHeroBackground />
+          <div className="relative z-10 mx-auto max-w-3xl">
+            <div className="inline-flex items-center gap-2 rounded-full border border-sky-200/80 bg-sky-50/80 px-3.5 py-1.5 text-xs font-medium text-sky-700 shadow-xs">
+              <span className="h-1.5 w-1.5 rounded-full bg-sky-500 animate-pulse" />
+              2026 秋季招新正式启动 · 面向全校技术与设计爱好者
+            </div>
+            <h1 className="mt-8 text-4xl font-bold tracking-tight text-slate-950 sm:text-6xl sm:leading-[1.15]">
+              致力于大前端、全栈与 AIGC 的<br />
+              <span className="text-sky-600">软创实践型工作室</span>
+            </h1>
+            <p className="mt-6 max-w-2xl mx-auto text-sm leading-relaxed text-slate-600 sm:text-base">
+              CodePaint（码绘）工作室围绕「提升能力、高质量就业」为愿景。聚焦<strong>开发（前端/全栈）</strong>与<strong>AIGC（大模型/Agent应用）</strong>两大核心赛道，提供成体系学习路线、企业级实战与大厂 1v1 就业内推辅导。
+            </p>
+            <div className="mt-6 flex justify-center">
+              <FloatingTechBadges />
+            </div>
+            <div className="mt-8 flex flex-wrap items-center justify-center gap-4">
+              <Button
+                onClick={() => openApply()}
+                className="h-11 px-7 text-xs sm:text-sm font-semibold shadow-sm"
+              >
+                开始在线报名 <ArrowRight className="h-4 w-4" />
+              </Button>
+              <a href="#roles">
+                <Button variant="outline" className="h-11 px-6 text-xs sm:text-sm font-medium">
+                  查看招新方向
+                </Button>
+              </a>
             </div>
           </div>
         </section>
 
         <StatsBanner />
+        <AlumniDestinations />
         <Roles onOpenApply={openApply} />
         <GrowthPath />
         <Projects />
@@ -702,6 +673,7 @@ function App() {
           </div>
           <div className="flex items-center gap-6">
             <a href="#stats" className="hover:text-slate-900 transition">战报</a>
+            <a href="#alumni" className="hover:text-slate-900 transition">去向</a>
             <a href="#roles" className="hover:text-slate-900 transition">方向</a>
             <a href="#growth" className="hover:text-slate-900 transition">培养</a>
             <a href="#projects" className="hover:text-slate-900 transition">实战</a>

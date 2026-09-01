@@ -1,3 +1,5 @@
+import { TypographyVortexCanvas } from "@designcodeio/threeui";
+import "@designcodeio/threeui/style.css";
 import { StrictMode, useEffect, useState } from "react";
 import { createRoot } from "react-dom/client";
 import { BrowserRouter, Link } from "react-router-dom";
@@ -18,10 +20,9 @@ import {
   Zap,
 } from "lucide-react";
 import { ApplyModal } from "./ApplyModal";
-import { ThreeHeroBackground } from "./components/ThreeHeroBackground";
+import { FloatingTechBadges } from "./components/FloatingTechBadges";
 import { ThreeWaveScene } from "./components/ThreeWaveScene";
 import { ThreeTracks } from "./components/ThreeTracks";
-import { FloatingTechBadges } from "./components/FloatingTechBadges";
 import { AlumniDestinations } from "./components/AlumniDestinations";
 import "./index.css";
 
@@ -622,35 +623,47 @@ function App() {
 
       <main>
         {/* Hero Section */}
-        <section className="relative overflow-hidden border-b border-slate-200/80 bg-gradient-to-b from-white via-white to-slate-50/50 px-6 py-20 md:py-28 bg-grid-pattern text-center">
-          <ThreeHeroBackground />
-          <div className="relative z-10 mx-auto max-w-3xl">
-            <div className="inline-flex items-center gap-2 rounded-full border border-sky-200/80 bg-sky-50/80 px-3.5 py-1.5 text-xs font-medium text-sky-700 shadow-xs">
-              <span className="h-1.5 w-1.5 rounded-full bg-sky-500 animate-pulse" />
-              2026 秋季招新正式启动 · 面向全校技术与设计爱好者
-            </div>
-            <h1 className="mt-8 text-4xl font-bold tracking-tight text-slate-950 sm:text-6xl sm:leading-[1.15]">
-              致力于大前端、全栈与 AIGC 的<br />
-              <span className="text-sky-600">软创实践型工作室</span>
-            </h1>
-            <p className="mt-6 max-w-2xl mx-auto text-sm leading-relaxed text-slate-600 sm:text-base">
-              CodePaint（码绘）工作室围绕「提升能力、高质量就业」为愿景。聚焦<strong>开发（前端/全栈）</strong>与<strong>AIGC（大模型/Agent应用）</strong>两大核心赛道，提供成体系学习路线、企业级实战与大厂 1v1 就业内推辅导。
-            </p>
-            <div className="mt-6 flex justify-center">
-              <FloatingTechBadges />
-            </div>
-            <div className="mt-8 flex flex-wrap items-center justify-center gap-4">
-              <Button
-                onClick={() => openApply()}
-                className="h-11 px-7 text-xs sm:text-sm font-semibold shadow-sm"
-              >
-                开始在线报名 <ArrowRight className="h-4 w-4" />
-              </Button>
-              <a href="#roles">
-                <Button variant="outline" className="h-11 px-6 text-xs sm:text-sm font-medium">
-                  查看招新方向
+        <section className="relative w-full overflow-hidden border-b border-slate-900 bg-[#08090a]">
+          <div className="shader-frame w-full h-[680px] sm:h-[760px] md:h-[840px] lg:h-[880px] relative">
+            <TypographyVortexCanvas
+              mode="dark"
+              speed={1.00}
+              ringGrowth={1.21}
+              opacity={1.00}
+              dissolveRadius={1.00}
+              particleAmount={1.00}
+              suctionDuration={920}
+            />
+          </div>
+          <div className="absolute inset-0 z-10 flex items-center justify-center pointer-events-none px-6 py-12 md:py-16">
+            <div className="mx-auto max-w-3xl text-center pointer-events-auto">
+              <div className="inline-flex items-center gap-2 rounded-full border border-sky-500/30 bg-sky-950/70 backdrop-blur-xs px-3.5 py-1.5 text-xs font-medium text-sky-300 shadow-xs">
+                <span className="h-1.5 w-1.5 rounded-full bg-sky-400 animate-pulse" />
+                2026 秋季招新正式启动 · 面向全校技术与设计爱好者
+              </div>
+              <h1 className="mt-8 text-4xl font-bold tracking-tight text-white sm:text-6xl sm:leading-[1.15] drop-shadow-sm">
+                致力于大前端、全栈与 AIGC 的<br />
+                <span className="text-sky-400">软创实践型工作室</span>
+              </h1>
+              <p className="mt-6 max-w-2xl mx-auto text-sm leading-relaxed text-slate-300 sm:text-base drop-shadow-xs">
+                CodePaint（码绘）工作室围绕「提升能力、高质量就业」为愿景。聚焦<strong>开发（前端/全栈）</strong>与<strong>AIGC（大模型/Agent应用）</strong>两大核心赛道，提供成体系学习路线、企业级实战与大厂 1v1 就业内推辅导。
+              </p>
+              <div className="mt-6 flex justify-center">
+                <FloatingTechBadges />
+              </div>
+              <div className="mt-8 flex flex-wrap items-center justify-center gap-4">
+                <Button
+                  onClick={() => openApply()}
+                  className="h-11 px-7 text-xs sm:text-sm font-semibold shadow-sm bg-sky-500 hover:bg-sky-400 text-slate-950 border-0"
+                >
+                  开始在线报名 <ArrowRight className="h-4 w-4" />
                 </Button>
-              </a>
+                <a href="#roles">
+                  <Button variant="outline" className="h-11 px-6 text-xs sm:text-sm font-medium border-slate-700 bg-slate-900/60 text-slate-200 hover:bg-slate-800 hover:text-white">
+                    查看招新方向
+                  </Button>
+                </a>
+              </div>
             </div>
           </div>
         </section>

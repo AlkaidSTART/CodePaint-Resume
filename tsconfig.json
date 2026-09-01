@@ -6,6 +6,14 @@
     "module": "ESNext",
     "skipLibCheck": true,
     "moduleResolution": "bundler",
+    "baseUrl": ".",
+    "paths": {
+      "@codepaint/types": ["packages/types/src/index.ts"],
+      "@codepaint/utils": ["packages/utils/src/index.ts"],
+      "@codepaint/auth": ["packages/auth/src/index.ts"],
+      "@codepaint/api-client": ["packages/api-client/src/index.ts"],
+      "@codepaint/ui": ["packages/ui/src/index.tsx"]
+    },
     "allowImportingTsExtensions": false,
     "resolveJsonModule": true,
     "isolatedModules": true,

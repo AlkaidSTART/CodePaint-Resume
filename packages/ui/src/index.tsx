@@ -5,7 +5,7 @@ export function Button({ children, className = "", ...props }: PropsWithChildren
 }
 
 export function StatusMark({ children, tone = "neutral" }: PropsWithChildren<{ tone?: "neutral" | "blue" | "green" | "red" }>) {
-  const toneClass = { neutral: "bg-slate-100 text-slate-700", blue: "bg-sky-50 text-sky-800", green: "bg-emerald-50 text-emerald-800", red: "bg-rose-50 text-rose-800" }[tone];
+  const toneClass = ({ neutral: "bg-slate-100 text-slate-700", blue: "bg-sky-50 text-sky-800", green: "bg-emerald-50 text-emerald-800", red: "bg-rose-50 text-rose-800" } as Record<"neutral" | "blue" | "green" | "red", string>)[tone ?? "neutral"];
   return <span className={`inline-flex items-center gap-2 rounded-full px-3 py-1 text-xs font-medium ${toneClass}`}><span className="h-1.5 w-1.5 rounded-full bg-current" aria-hidden="true" />{children}</span>;
 }
 

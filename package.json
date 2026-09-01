@@ -11,6 +11,8 @@
     "lint": "pnpm --filter \"@codepaint/*\" lint"
   },
   "devDependencies": {
+    "@types/react": "^19.0.0",
+    "@types/react-dom": "^19.0.0",
     "typescript": "^5.7.0"
   },
   "packageManager": "pnpm@11.17.0"

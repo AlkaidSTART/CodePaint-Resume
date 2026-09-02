@@ -2,14 +2,12 @@ import { useRef } from "react";
 import { gsap } from "gsap";
 import { useGSAP } from "@gsap/react";
 import logo from "../assets/1280X1280.webp";
+import { useAppStore } from "../store/appStore";
 
 const albumUrl = "https://album.hub.feashow.cn/login";
 
-type HeaderProps = {
-  onApply: () => void;
-};
-
-export function Header({ onApply }: HeaderProps) {
+export function Header() {
+  const openApply = useAppStore((state) => state.openApply);
   const headerRef = useRef<HTMLElement>(null);
 
   useGSAP(() => {
@@ -19,7 +17,7 @@ export function Header({ onApply }: HeaderProps) {
   }, { scope: headerRef });
 
   return (
-    <header ref={headerRef} className="fixed inset-x-0 top-0 z-40 px-3 pt-5 sm:px-6 sm:pt-7">
+    <header ref={headerRef} className="fixed inset-x-0 top-0 z-50 px-3 pt-5 sm:px-6 sm:pt-7">
       <div className="mx-auto max-w-7xl">
         <div className="relative flex min-h-16 items-center gap-4 overflow-hidden rounded-[14px] border border-black/15 bg-black/[0.035] px-4 shadow-[0_10px_35px_rgba(20,20,20,0.1)] backdrop-blur-2xl backdrop-saturate-150 sm:min-h-[72px] sm:px-6">
           <div className="header-rule pointer-events-none absolute inset-x-0 bottom-0 h-px bg-black/15" aria-hidden="true" />
@@ -33,7 +31,7 @@ export function Header({ onApply }: HeaderProps) {
             <span className="text-base transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" aria-hidden="true">↗</span>
           </a>
           <div className="header-item flex items-center gap-3">
-            <button className="group relative min-h-11 shrink-0 rounded-md px-2 text-sm font-medium text-black outline-offset-4 transition-[color,transform] hover:text-sky-500 active:translate-y-px focus-visible:outline-2 focus-visible:outline-black disabled:cursor-wait disabled:opacity-60" type="button" onClick={onApply}>
+            <button className="group relative min-h-11 shrink-0 rounded-md px-2 text-sm font-medium text-black outline-offset-4 transition-[color,transform] hover:text-sky-500 active:translate-y-px focus-visible:outline-2 focus-visible:outline-black disabled:cursor-wait disabled:opacity-60" type="button" onClick={openApply}>
               <span>前往投递</span><span className="ml-2 inline-block transition-transform group-hover:translate-x-1" aria-hidden="true">→</span>
             </button>
           </div>

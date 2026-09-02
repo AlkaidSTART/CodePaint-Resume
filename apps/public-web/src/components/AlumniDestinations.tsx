@@ -15,7 +15,7 @@ export function AlumniDestinations() {
   const companies = [
     {
       name: "腾讯 (Tencent)",
-      badge: "26届实习 x3",
+      badge: "26届实习 x4",
       role: "前端 / 全栈研发",
       icon: SiQq,
       color: "hover:border-[#0052d9]/40 hover:bg-[#0052d9]/5 text-[#0052d9]",
@@ -23,7 +23,7 @@ export function AlumniDestinations() {
     },
     {
       name: "微信 (WeChat)",
-      badge: "大厂研发",
+      badge: "26届实习 x1",
       role: "小程序 / Web 架构",
       icon: SiWechat,
       color: "hover:border-[#07c160]/40 hover:bg-[#07c160]/5 text-[#07c160]",
@@ -39,7 +39,7 @@ export function AlumniDestinations() {
     },
     {
       name: "腾讯云智 (Tencent CSIG)",
-      badge: "产业互联",
+      badge: "26届实习 x4",
       role: "行业云 / 全栈工程",
       icon: Server,
       color: "hover:border-[#0066ff]/40 hover:bg-[#0066ff]/5 text-[#0066ff]",
@@ -47,7 +47,7 @@ export function AlumniDestinations() {
     },
     {
       name: "网易 (NetEase)",
-      badge: "游戏与互娱",
+      badge: "26届实习 x1",
       role: "雷火 / 互娱工具链",
       icon: Gamepad2,
       color: "hover:border-[#e60012]/40 hover:bg-[#e60012]/5 text-[#e60012]",
@@ -55,7 +55,7 @@ export function AlumniDestinations() {
     },
     {
       name: "美团 (Meituan)",
-      badge: "校招录用",
+      badge: "26届实习 x2",
       role: "到店 / 基础研发",
       icon: SiMeituan,
       color: "hover:border-[#ffd000]/60 hover:bg-[#ffd000]/10 text-amber-600",

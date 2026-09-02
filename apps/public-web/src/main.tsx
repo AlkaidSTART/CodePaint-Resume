@@ -756,9 +756,7 @@ function App() {
                 <strong className="text-sky-300 font-semibold border-b border-sky-400/40 pb-0.5">AIGC（大模型/Agent应用）</strong>{" "}
                 两大核心赛道，提供成体系学习路线、企业级实战与大厂 1v1 就业内推辅导。
               </p>
-              <div data-hero-item className="mt-6 sm:mt-7 flex justify-center">
-                <FloatingTechBadges />
-              </div>
+        
               <div data-hero-item className="mt-8 sm:mt-9 flex flex-wrap items-center justify-center gap-4">
                 <Button
                   onClick={() => openApply()}

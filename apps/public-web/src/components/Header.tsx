@@ -31,7 +31,7 @@ export function Header() {
             <span className="text-base transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" aria-hidden="true">↗</span>
           </a>
           <div className="header-item flex items-center gap-3">
-            <button className="group relative min-h-11 shrink-0 rounded-md px-2 text-sm font-medium text-black outline-offset-4 transition-[color,transform] hover:text-sky-500 active:translate-y-px focus-visible:outline-2 focus-visible:outline-black disabled:cursor-wait disabled:opacity-60" type="button" onClick={openApply}>
+            <button id="apply-trigger" className="group relative min-h-11 shrink-0 rounded-md px-2 text-sm font-medium text-black outline-offset-4 transition-[color,transform] hover:text-sky-500 active:translate-y-px focus-visible:outline-2 focus-visible:outline-sky-500 disabled:cursor-wait disabled:opacity-60" type="button" onClick={openApply}>
               <span>前往投递</span><span className="ml-2 inline-block transition-transform group-hover:translate-x-1" aria-hidden="true">→</span>
             </button>
           </div>

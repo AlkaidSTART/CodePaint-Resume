@@ -6,40 +6,36 @@ interface IntroCurtainProps {
   onComplete: () => void;
 }
 
-interface Particle {
-  x: number;
-  y: number;
-  vx: number;
-  vy: number;
-  tx: number; // 目标字母像素 X
-  ty: number; // 目标字母像素 Y
-  baseX: number;
-  baseY: number;
-  codeChar: string;
-  size: number;
-  baseAlpha: number;
-  glow: boolean;
-  colorType: "code" | "gold" | "ink";
-  orbitRadius: number;
-  orbitAngle: number;
-  orbitSpeed: number;
-  phaseShift: number;
+interface CodeToken {
+  t: string;
+  c: string; // color
 }
 
-interface InkDrop {
+interface CodeBlock {
+  id: string;
+  lang: "TypeScript" | "Go" | "Rust" | "Binary";
+  fileName: string;
+  relX: number; // 相对中心偏移系数 (-1 ~ 1)
+  relY: number;
+  w: number;
+  h: number;
+  lines: Array<{ lineNum: number; tokens: CodeToken[] }>;
+  floatPhase: number;
+  scale: number;
+  rotation: number;
+}
+
+interface InkSplatter {
   x: number;
   y: number;
   maxR: number;
   color: string;
-  growthDelay: number;
-  wobble: number[];
+  delay: number;
+  points: number[];
 }
 
 /**
- * 电影级慢热开屏：CodePaint 粒子重构、水墨相变与金粉厚涂油彩
- * - 沉稳优雅叙事节奏（~6.8s 完整体验，支持 ESC / SKIP 一键跳过）
- * - 纯黑 (#09090b) -> 浸润米白 (#F4F0EA) -> 纸白 (#FFFFFC)
- * - 结合 Code (代码流/准星/矩阵) 与 Paint (水墨扩散/金粉厚涂/手绘笔刷)
+ * 电影级慢热开屏：TS / Go / Rust / Binary 实体代码窗口 -> 慢镜头柔缓引力挤压消融 -> 宣纸水墨晕染 -> 暖金油彩厚涂 -> CodePaint 定格
  */
 export function IntroCurtain({ onComplete }: IntroCurtainProps) {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -88,114 +84,310 @@ export function IntroCurtain({ onComplete }: IntroCurtainProps) {
     let h = window.innerHeight;
     let dpr = Math.min(window.devicePixelRatio || 1, 2);
 
-    // 采样 CodePaint 字体像素矩阵
-    const sampleCodePaint = (width: number, height: number) => {
-      const offCanvas = document.createElement("canvas");
-      const offCtx = offCanvas.getContext("2d");
-      if (!offCtx) return { particles: [] as Particle[], bounds: { w: 0, h: 0, fontSize: 48 } };
+    // 预设真实工程代码块数据
+    const CODE_BLOCKS: CodeBlock[] = [
+      {
+        id: "ts",
+        lang: "TypeScript",
+        fileName: "render.engine.ts",
+        relX: -0.32,
+        relY: -0.26,
+        w: 380,
+        h: 210,
+        rotation: -2,
+        floatPhase: 0,
+        scale: 1,
+        lines: [
+          {
+            lineNum: 1,
+            tokens: [
+              { t: "interface ", c: "#C084FC" },
+              { t: "AtelierContext", c: "#38BDF8" },
+              { t: " {", c: "#94A3B8" },
+            ],
+          },
+          {
+            lineNum: 2,
+            tokens: [
+              { t: "  readonly ", c: "#C084FC" },
+              { t: "canvas", c: "#F8FAFC" },
+              { t: ": ", c: "#94A3B8" },
+              { t: "HTMLCanvasElement", c: "#38BDF8" },
+              { t: ";", c: "#94A3B8" },
+            ],
+          },
+          {
+            lineNum: 3,
+            tokens: [
+              { t: "  readonly ", c: "#C084FC" },
+              { t: "palette", c: "#F8FAFC" },
+              { t: ": ", c: "#94A3B8" },
+              { t: "Record<", c: "#38BDF8" },
+              { t: "string, Color", c: "#F8FAFC" },
+              { t: ">;", c: "#38BDF8" },
+            ],
+          },
+          {
+            lineNum: 4,
+            tokens: [{ t: "}", c: "#94A3B8" }],
+          },
+          {
+            lineNum: 5,
+            tokens: [
+              { t: "export const ", c: "#C084FC" },
+              { t: "paint", c: "#FACC15" },
+              { t: " = ", c: "#94A3B8" },
+              { t: "async ", c: "#C084FC" },
+              { t: "() => {", c: "#94A3B8" },
+            ],
+          },
+          {
+            lineNum: 6,
+            tokens: [
+              { t: "  await ", c: "#C084FC" },
+              { t: "pipeline.", c: "#F8FAFC" },
+              { t: "dispatch", c: "#FACC15" },
+              { t: "({ ", c: "#94A3B8" },
+              { t: "mode: ", c: "#38BDF8" },
+              { t: "\"impasto\"", c: "#4ADE80" },
+              { t: " });", c: "#94A3B8" },
+            ],
+          },
+          {
+            lineNum: 7,
+            tokens: [{ t: "};", c: "#94A3B8" }],
+          },
+        ],
+      },
+      {
+        id: "rust",
+        lang: "Rust",
+        fileName: "rasterizer.rs",
+        relX: 0.33,
+        relY: -0.22,
+        w: 390,
+        h: 220,
+        rotation: 2.2,
+        floatPhase: 1.5,
+        scale: 1,
+        lines: [
+          {
+            lineNum: 1,
+            tokens: [
+              { t: "pub struct ", c: "#F97316" },
+              { t: "ImpastoBrush", c: "#38BDF8" },
+              { t: " {", c: "#94A3B8" },
+            ],
+          },
+          {
+            lineNum: 2,
+            tokens: [
+              { t: "    buffer: ", c: "#94A3B8" },
+              { t: "Arc", c: "#38BDF8" },
+              { t: "<", c: "#94A3B8" },
+              { t: "Mutex", c: "#38BDF8" },
+              { t: "<Vec<u8>>>", c: "#94A3B8" },
+              { t: ",", c: "#94A3B8" },
+            ],
+          },
+          {
+            lineNum: 3,
+            tokens: [
+              { t: "    pub tension: ", c: "#94A3B8" },
+              { t: "f32", c: "#F97316" },
+              { t: ",", c: "#94A3B8" },
+            ],
+          },
+          {
+            lineNum: 4,
+            tokens: [{ t: "}", c: "#94A3B8" }],
+          },
+          {
+            lineNum: 5,
+            tokens: [
+              { t: "impl ", c: "#F97316" },
+              { t: "ImpastoBrush", c: "#38BDF8" },
+              { t: " {", c: "#94A3B8" },
+            ],
+          },
+          {
+            lineNum: 6,
+            tokens: [
+              { t: "    pub fn ", c: "#F97316" },
+              { t: "blend_stroke", c: "#FACC15" },
+              { t: "(&mut self) {", c: "#94A3B8" },
+            ],
+          },
+          {
+            lineNum: 7,
+            tokens: [
+              { t: "        unsafe { self.simd_blend(); }", c: "#4ADE80" },
+            ],
+          },
+          {
+            lineNum: 8,
+            tokens: [{ t: "    }", c: "#94A3B8" }, { t: " }", c: "#94A3B8" }],
+          },
+        ],
+      },
+      {
+        id: "go",
+        lang: "Go",
+        fileName: "stream.go",
+        relX: -0.30,
+        relY: 0.28,
+        w: 370,
+        h: 210,
+        rotation: 1.5,
+        floatPhase: 3.2,
+        scale: 1,
+        lines: [
+          {
+            lineNum: 1,
+            tokens: [
+              { t: "package ", c: "#00ADD8" },
+              { t: "atelier", c: "#F8FAFC" },
+            ],
+          },
+          {
+            lineNum: 2,
+            tokens: [
+              { t: "func ", c: "#00ADD8" },
+              { t: "StreamFrames", c: "#FACC15" },
+              { t: "(ctx ", c: "#94A3B8" },
+              { t: "context.Context", c: "#38BDF8" },
+              { t: ") <-chan ", c: "#00ADD8" },
+              { t: "Frame {", c: "#94A3B8" },
+            ],
+          },
+          {
+            lineNum: 3,
+            tokens: [
+              { t: "	out := ", c: "#94A3B8" },
+              { t: "make", c: "#00ADD8" },
+              { t: "(chan Frame, 64)", c: "#94A3B8" },
+            ],
+          },
+          {
+            lineNum: 4,
+            tokens: [
+              { t: "	go func() {", c: "#00ADD8" },
+            ],
+          },
+          {
+            lineNum: 5,
+            tokens: [
+              { t: "		defer ", c: "#00ADD8" },
+              { t: "close(out)", c: "#94A3B8" },
+            ],
+          },
+          {
+            lineNum: 6,
+            tokens: [
+              { t: "		for f := range worker.Sync() {", c: "#94A3B8" },
+            ],
+          },
+          {
+            lineNum: 7,
+            tokens: [
+              { t: "			out <- f", c: "#4ADE80" },
+            ],
+          },
+          {
+            lineNum: 8,
+            tokens: [{ t: "		}", c: "#94A3B8" }, { t: " }()", c: "#00ADD8" }, { t: " return out", c: "#94A3B8" }],
+          },
+        ],
+      },
+      {
+        id: "bin",
+        lang: "Binary",
+        fileName: "core_dump.hex",
+        relX: 0.31,
+        relY: 0.29,
+        w: 390,
+        h: 200,
+        rotation: -2.4,
+        floatPhase: 4.8,
+        scale: 1,
+        lines: [
+          {
+            lineNum: 1,
+            tokens: [
+              { t: "0000: ", c: "#64748B" },
+              { t: "436f 6465 5061 696e", c: "#4ADE80" },
+              { t: " | CodePain", c: "#38BDF8" },
+            ],
+          },
+          {
+            lineNum: 2,
+            tokens: [
+              { t: "0010: ", c: "#64748B" },
+              { t: "7420 5374 7564 696f", c: "#4ADE80" },
+              { t: " | t Studio", c: "#38BDF8" },
+            ],
+          },
+          {
+            lineNum: 3,
+            tokens: [
+              { t: "0020: ", c: "#64748B" },
+              { t: "2045 6e67 696e 6565", c: "#FACC15" },
+              { t: " |  Enginee", c: "#38BDF8" },
+            ],
+          },
+          {
+            lineNum: 4,
+            tokens: [
+              { t: "0030: ", c: "#64748B" },
+              { t: "7269 6e67 2026 2041", c: "#FACC15" },
+              { t: " | ring & A", c: "#38BDF8" },
+            ],
+          },
+          {
+            lineNum: 5,
+            tokens: [
+              { t: "0040: ", c: "#64748B" },
+              { t: "7465 6c69 6572 2100", c: "#F43F5E" },
+              { t: " | telier!.", c: "#38BDF8" },
+            ],
+          },
+          {
+            lineNum: 6,
+            tokens: [
+              { t: "0050: ", c: "#64748B" },
+              { t: "00ff b000 ffff fcfc", c: "#FFB000" },
+              { t: " | ........", c: "#94A3B8" },
+            ],
+          },
+        ],
+      },
+    ];
 
-      offCanvas.width = width;
-      offCanvas.height = height;
-
-      // 响应式字号
-      const fontSize = Math.max(52, Math.min(width * 0.115, 124));
-      offCtx.font = `700 ${fontSize}px "Space Grotesk", -apple-system, sans-serif`;
-      offCtx.textAlign = "center";
-      offCtx.textBaseline = "middle";
-
-      const text = "CodePaint";
-      const cx = width / 2;
-      const cy = height / 2 - 12;
-      offCtx.fillText(text, cx, cy);
-
-      const metrics = offCtx.measureText(text);
-      const tw = metrics.width;
-      const th = fontSize * 1.25;
-
-      const startX = Math.max(0, Math.floor(cx - tw / 2 - 20));
-      const startY = Math.max(0, Math.floor(cy - th / 2 - 10));
-      const sampleW = Math.min(width - startX, Math.ceil(tw + 40));
-      const sampleH = Math.min(height - startY, Math.ceil(th + 20));
-
-      const imgData = offCtx.getImageData(startX, startY, sampleW, sampleH);
-      const data = imgData.data;
-
-      const codePool = [
-        "0", "1", "<", ">", "/", "{", "}", ";", "x", "=", "#", "+", "•", "λ", "fn", "ctx", "let", "px", "0x",
-      ];
-      const particles: Particle[] = [];
-      const step = width < 768 ? 6 : 5;
-
-      for (let y = 0; y < sampleH; y += step) {
-        for (let x = 0; x < sampleW; x += step) {
-          const idx = (y * sampleW + x) * 4;
-          if (data[idx + 3] > 100) {
-            const targetX = startX + x;
-            const targetY = startY + y;
-
-            // 初始轨道与星尘分布
-            const orbitR = Math.max(width, height) * (0.18 + Math.random() * 0.72);
-            const orbitA = Math.random() * Math.PI * 2;
-            const initX = cx + Math.cos(orbitA) * orbitR;
-            const initY = cy + Math.sin(orbitA) * orbitR;
-
-            const isGold = targetX > cx - tw * 0.08;
-            const rnd = Math.random();
-
-            particles.push({
-              x: initX,
-              y: initY,
-              vx: (Math.random() - 0.5) * 1.5,
-              vy: (Math.random() - 0.5) * 1.5,
-              tx: targetX,
-              ty: targetY,
-              baseX: initX,
-              baseY: initY,
-              codeChar: codePool[Math.floor(Math.random() * codePool.length)],
-              size: 7 + Math.random() * 5,
-              baseAlpha: 0.25 + Math.random() * 0.75,
-              glow: rnd > 0.85,
-              colorType: isGold ? (rnd > 0.35 ? "gold" : "code") : rnd > 0.6 ? "code" : "ink",
-              orbitRadius: orbitR,
-              orbitAngle: orbitA,
-              orbitSpeed: (0.15 + Math.random() * 0.35) * (Math.random() > 0.5 ? 1 : -1),
-              phaseShift: Math.random() * Math.PI * 2,
-            });
-          }
-        }
-      }
-
-      return { particles, bounds: { w: tw, h: th, fontSize } };
-    };
-
-    // 生成宣纸浸润水墨斑点
-    const generateInkDrops = (cx: number, cy: number, w: number): InkDrop[] => {
-      const drops: InkDrop[] = [];
-      const count = 28;
-      const goldTones = ["#FFB000", "#F59E0B", "#FCD34D"];
-      const paperTones = ["#EFEAE1", "#E6DFD3", "#D8D0C0", "#222224"];
-
+    // 水墨晕染斑点
+    const generateInkSplatters = (cx: number, cy: number, width: number): InkSplatter[] => {
+      const list: InkSplatter[] = [];
+      const count = 30;
+      const palette = ["#FFB000", "#F59E0B", "#E4DEC9", "#262626", "#D5CEBD"];
       for (let i = 0; i < count; i++) {
         const angle = (i / count) * Math.PI * 2 + (Math.random() - 0.5) * 0.4;
-        const dist = 60 + Math.random() * (w * 0.38);
-        const wobble: number[] = [];
-        for (let j = 0; j < 10; j++) {
-          wobble.push(0.72 + Math.random() * 0.56);
+        const dist = 50 + Math.random() * (width * 0.35);
+        const pts = [];
+        for (let j = 0; j < 9; j++) {
+          pts.push(0.72 + Math.random() * 0.55);
         }
-        drops.push({
+        list.push({
           x: cx + Math.cos(angle) * dist,
           y: cy + Math.sin(angle) * (dist * 0.65),
-          maxR: 35 + Math.random() * 110,
-          color: i % 5 === 0 ? goldTones[i % goldTones.length] : paperTones[i % paperTones.length],
-          growthDelay: Math.random() * 0.3,
-          wobble,
+          maxR: 40 + Math.random() * 100,
+          color: palette[i % palette.length],
+          delay: Math.random() * 0.3,
+          points: pts,
         });
       }
-      return drops;
+      return list;
     };
 
-    let { particles, bounds } = sampleCodePaint(w, h);
-    let inkDrops = generateInkDrops(w / 2, h / 2, w);
+    let inkSplatters = generateInkSplatters(w / 2, h / 2, w);
 
     const resize = () => {
       w = window.innerWidth;
@@ -204,44 +396,33 @@ export function IntroCurtain({ onComplete }: IntroCurtainProps) {
       canvas.width = Math.floor(w * dpr);
       canvas.height = Math.floor(h * dpr);
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-
-      const sampled = sampleCodePaint(w, h);
-      particles = sampled.particles;
-      bounds = sampled.bounds;
-      inkDrops = generateInkDrops(w / 2, h / 2, w);
+      inkSplatters = generateInkSplatters(w / 2, h / 2, w);
     };
-
     resize();
     window.addEventListener("resize", resize);
 
-    // 动画状态驱动器 (GSAP 平滑插值驱动)
+    // 动画状态驱动器
     const anim = {
       bgProgress: 0,        // 0(黑 #09090b) -> 0.5(米白 #F4F0EA) -> 1.0(纸白 #FFFFFC)
-      nebulaIntensity: 0.1, // 0~1 代码星云微光与流动速度
-      inkDiffusion: 0,      // 0~1 水墨晕染与纸面浸润
-      particleAttract: 0,   // 0~1 粒子向字形结晶汇聚动力
-      brushStroke: 0,       // 0~1 暖金油彩厚涂毛刷横扫
-      crystallization: 0,   // 0~1 实体字体锐化显影
-      hudOpacity: 0,        // 0~1 极客准星与工程刻度
-      finalAura: 0,         // 0~1 最终呼吸光晕
+      codeEntrance: 0,      // 0~1 代码块入场浮现与呼吸
+      squeezeProgress: 0,   // 0~1 慢速柔缓引力挤压消融进度
+      inkWash: 0,           // 0~1 水墨晕染
+      brushSweep: 0,        // 0~1 金粉厚涂油彩横扫
+      logoAlpha: 0,         // 0~1 CodePaint 定格
+      hudAlpha: 0,          // 0~1 极客准星与印章
     };
 
     let rafId = 0;
-    let lastTime = performance.now();
 
-    // 主渲染循环
     const render = (time: number) => {
-      const dt = Math.min((time - lastTime) / 1000, 0.05);
-      lastTime = time;
       const t = time / 1000;
-
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
 
       const cx = w / 2;
-      const cy = h / 2 - 10;
+      const cy = h / 2;
       const p = anim.bgProgress;
 
-      // 1. 电影级背景连续插值：深邃黑 (#09090b) -> 温润米白 (#F4F0EA) -> 纸白 (#FFFFFC)
+      // 1. 背景色连续插值：纯黑 (#09090b) -> 温润米白 (#F4F0EA) -> 纯净纸白 (#FFFFFC)
       let r = 9, g = 9, b = 11;
       if (p <= 0.5) {
         const k = p / 0.5;
@@ -259,63 +440,154 @@ export function IntroCurtain({ onComplete }: IntroCurtainProps) {
 
       const isLightBg = p > 0.42;
 
-      // 2. 暗夜极客星轨与工程网格
+      // 2. 暗黑代码空间极客网格与光芒
       if (p < 0.6) {
         ctx.save();
-        const gridAlpha = (1 - p / 0.6) * 0.12;
+        const gridAlpha = (1 - p / 0.6) * 0.09;
         ctx.strokeStyle = `rgba(255, 255, 255, ${gridAlpha})`;
         ctx.lineWidth = 1;
-        const gridStep = 56;
-        for (let gx = (cx % gridStep); gx < w; gx += gridStep) {
+        const step = 56;
+        for (let gx = cx % step; gx < w; gx += step) {
           ctx.beginPath();
           ctx.moveTo(gx, 0);
           ctx.lineTo(gx, h);
           ctx.stroke();
         }
-        for (let gy = (cy % gridStep); gy < h; gy += gridStep) {
+        for (let gy = cy % step; gy < h; gy += step) {
           ctx.beginPath();
           ctx.moveTo(0, gy);
           ctx.lineTo(w, gy);
           ctx.stroke();
         }
-
-        // 中心流光射线 (沉浸氛围)
-        const rayCount = 6;
-        for (let i = 0; i < rayCount; i++) {
-          const angle = t * 0.18 + (i * Math.PI * 2) / rayCount;
-          const rayLen = Math.max(w, h) * 0.7;
-          const grad = ctx.createLinearGradient(cx, cy, cx + Math.cos(angle) * rayLen, cy + Math.sin(angle) * rayLen);
-          grad.addColorStop(0, "rgba(255, 176, 0, 0.08)");
-          grad.addColorStop(0.4, "rgba(0, 255, 140, 0.02)");
-          grad.addColorStop(1, "transparent");
-          ctx.fillStyle = grad;
-          ctx.beginPath();
-          ctx.moveTo(cx, cy);
-          ctx.arc(cx, cy, rayLen, angle - 0.12, angle + 0.12);
-          ctx.closePath();
-          ctx.fill();
-        }
         ctx.restore();
       }
 
-      // 3. 水墨晕染与宣纸浸润 (Ink Diffusion)
-      if (anim.inkDiffusion > 0.01) {
+      // 3. 实体代码块窗口渲染与慢镜头引力挤压动力学
+      const sq = anim.squeezeProgress; // 0 -> 1
+      const codeBlockAlpha = anim.codeEntrance * (1 - sq * 0.95);
+
+      if (codeBlockAlpha > 0.01) {
         ctx.save();
-        inkDrops.forEach((d) => {
-          const progress = Math.max(0, Math.min(1, (anim.inkDiffusion - d.growthDelay) / (1 - d.growthDelay)));
+
+        CODE_BLOCKS.forEach((block) => {
+          // 悬浮晃动
+          const floatY = Math.sin(t * 1.5 + block.floatPhase) * 6;
+          const floatRot = Math.sin(t * 1.1 + block.floatPhase) * 0.5;
+
+          // 慢速引力挤压：中心吸引 + 尺寸向中心坍缩 + 旋转收敛
+          const origX = cx + block.relX * (w * 0.65);
+          const origY = cy + block.relY * (h * 0.60);
+
+          const curX = origX + (cx - origX) * sq;
+          const curY = origY + (cy - origY) * sq + floatY * (1 - sq);
+
+          const curScale = (1 - sq * 0.78) * (Math.min(w / 1200, 1) * 0.95);
+          const curRot = (block.rotation + floatRot) * (1 - sq);
+
+          ctx.save();
+          ctx.translate(curX, curY);
+          ctx.rotate((curRot * Math.PI) / 180);
+          ctx.scale(curScale, curScale);
+          ctx.globalAlpha = codeBlockAlpha;
+
+          const bw = block.w;
+          const bh = block.h;
+          const bx = -bw / 2;
+          const by = -bh / 2;
+
+          // 窗口阴影与背板
+          ctx.shadowColor = isLightBg ? "rgba(0, 0, 0, 0.12)" : "rgba(0, 255, 140, 0.08)";
+          ctx.shadowBlur = 28;
+          ctx.shadowOffsetY = 12;
+
+          ctx.fillStyle = isLightBg ? "rgba(255, 255, 255, 0.85)" : "rgba(15, 17, 23, 0.88)";
+          ctx.strokeStyle = isLightBg ? "rgba(17, 17, 17, 0.1)" : "rgba(255, 255, 255, 0.12)";
+          ctx.lineWidth = 1;
+
+          // 圆角矩形窗体
+          ctx.beginPath();
+          ctx.roundRect(bx, by, bw, bh, 10);
+          ctx.fill();
+          ctx.stroke();
+
+          // 重置阴影
+          ctx.shadowColor = "transparent";
+          ctx.shadowBlur = 0;
+
+          // 窗口顶栏与 Traffic lights
+          ctx.fillStyle = isLightBg ? "rgba(0,0,0,0.04)" : "rgba(255,255,255,0.04)";
+          ctx.beginPath();
+          ctx.roundRect(bx, by, bw, 28, [10, 10, 0, 0]);
+          ctx.fill();
+
+          const dotY = by + 14;
+          const dots = ["#EF4444", "#EAB308", "#22C55E"];
+          dots.forEach((color, i) => {
+            ctx.fillStyle = color;
+            ctx.beginPath();
+            ctx.arc(bx + 14 + i * 11, dotY, 3.8, 0, Math.PI * 2);
+            ctx.fill();
+          });
+
+          // 文件名标签
+          ctx.font = "600 10.5px monospace";
+          ctx.fillStyle = isLightBg ? "#475569" : "#94A3B8";
+          ctx.textAlign = "center";
+          ctx.fillText(block.fileName, 0, dotY + 3.5);
+
+          // 语言徽章
+          ctx.font = "700 9px monospace";
+          ctx.fillStyle = isLightBg ? "rgba(17,17,17,0.4)" : "rgba(255,255,255,0.4)";
+          ctx.textAlign = "right";
+          ctx.fillText(block.lang.toUpperCase(), bx + bw - 12, dotY + 3.5);
+
+          // 代码行渲染 (带行号与语法高亮)
+          let lineY = by + 46;
+          const lineHeight = 19.5;
+
+          block.lines.forEach((line) => {
+            // 行号
+            ctx.font = "11px monospace";
+            ctx.fillStyle = isLightBg ? "#94A3B8" : "#475569";
+            ctx.textAlign = "right";
+            ctx.fillText(String(line.lineNum), bx + 24, lineY);
+
+            // Tokens
+            let tokenX = bx + 36;
+            ctx.textAlign = "left";
+            line.tokens.forEach((token) => {
+              ctx.fillStyle = isLightBg && token.c === "#F8FAFC" ? "#0F172A" : token.c;
+              ctx.fillText(token.t, tokenX, lineY);
+              tokenX += ctx.measureText(token.t).width;
+            });
+
+            lineY += lineHeight;
+          });
+
+          ctx.restore();
+        });
+
+        ctx.restore();
+      }
+
+      // 4. 挤压相变：宣纸水墨浸润晕染 (Ink Wash)
+      if (anim.inkWash > 0.01) {
+        ctx.save();
+        inkSplatters.forEach((s) => {
+          const progress = Math.max(0, Math.min(1, (anim.inkWash - s.delay) / (1 - s.delay)));
           if (progress <= 0) return;
 
-          const currR = d.maxR * progress;
-          ctx.fillStyle = d.color;
-          ctx.globalAlpha = (1 - progress * 0.3) * (1 - anim.crystallization * 0.88) * 0.32;
+          const currR = s.maxR * progress;
+          ctx.fillStyle = s.color;
+          ctx.globalAlpha = (1 - progress * 0.28) * (1 - anim.logoAlpha * 0.85) * 0.35;
 
           ctx.beginPath();
-          const pts = d.wobble;
+          const pts = s.points;
           for (let i = 0; i < pts.length; i++) {
             const angle = (i / pts.length) * Math.PI * 2;
             const rOffset = currR * pts[i];
-            const px = d.x + Math.cos(angle) * rOffset;
-            const py = d.y + Math.sin(angle) * rOffset;
+            const px = s.x + Math.cos(angle) * rOffset;
+            const py = s.y + Math.sin(angle) * rOffset;
             if (i === 0) ctx.moveTo(px, py);
             else ctx.lineTo(px, py);
           }
@@ -325,142 +597,67 @@ export function IntroCurtain({ onComplete }: IntroCurtainProps) {
         ctx.restore();
       }
 
-      // 4. 金粉油彩厚涂笔刷横扫 (Paint Sweep)
-      if (anim.brushStroke > 0.01) {
+      // 5. 暖金厚涂油彩横扫 (Impasto Brush Sweep)
+      if (anim.brushSweep > 0.01) {
         ctx.save();
-        const strokeW = bounds.w * 0.52;
-        const strokeH = bounds.h * 0.68;
-        const sweepProgress = anim.brushStroke;
+        const fontSize = Math.max(52, Math.min(w * 0.115, 120));
+        const bannerW = fontSize * 3.8;
+        const bannerH = fontSize * 0.68;
+        const sweepW = bannerW * anim.brushSweep;
 
-        ctx.translate(cx + bounds.w * 0.19, cy + 2);
+        ctx.translate(cx + fontSize * 0.65, cy + 2);
         ctx.rotate(-0.04);
 
-        // 油画肌理多重多层笔触
-        const layers = [
-          { color: "rgba(255, 176, 0, 0.95)", yOff: 0, hScale: 1.0 },
-          { color: "rgba(245, 158, 11, 0.85)", yOff: -6, hScale: 0.7 },
-          { color: "rgba(254, 240, 138, 0.4)", yOff: 8, hScale: 0.4 },
-        ];
+        // 多层油彩质感
+        ctx.fillStyle = "#FFB000";
+        ctx.fillRect(-bannerW / 2, -bannerH / 2, sweepW, bannerH);
 
-        layers.forEach((l) => {
-          ctx.fillStyle = l.color;
-          const curW = strokeW * Math.min(1, sweepProgress * 1.15);
-          ctx.fillRect(-strokeW / 2, -strokeH / 2 + l.yOff, curW, strokeH * l.hScale);
-        });
+        ctx.fillStyle = "rgba(245, 158, 11, 0.75)";
+        ctx.fillRect(-bannerW / 2, -bannerH / 2 + 5, sweepW * 0.95, bannerH * 0.6);
 
-        // 笔刷尾部飞白噪点
-        if (sweepProgress > 0.3) {
-          ctx.fillStyle = "#FFB000";
-          for (let k = 0; k < 12; k++) {
-            const fx = strokeW * sweepProgress - strokeW / 2 + (k * 4);
-            const fy = (Math.random() - 0.5) * strokeH * 0.9;
-            ctx.fillRect(fx, fy, 4 + Math.random() * 8, 2);
+        // 飞白肌理
+        if (anim.brushSweep > 0.3) {
+          ctx.fillStyle = "#FCD34D";
+          for (let k = 0; k < 10; k++) {
+            const fx = sweepW - bannerW / 2 + k * 4;
+            const fy = (Math.random() - 0.5) * bannerH * 0.8;
+            ctx.fillRect(fx, fy, 6, 2);
           }
         }
 
         ctx.restore();
       }
 
-      // 5. 物理字符粒子系统动力学
-      if (particles.length > 0) {
+      // 6. CodePaint 核心品牌定格
+      if (anim.logoAlpha > 0.01) {
         ctx.save();
-        ctx.textAlign = "center";
-        ctx.textBaseline = "middle";
-
-        const attract = anim.particleAttract;
-
-        for (let i = 0; i < particles.length; i++) {
-          const pt = particles[i];
-
-          if (attract <= 0.001) {
-            // 暗夜旋转星轨漂浮
-            pt.orbitAngle += pt.orbitSpeed * dt * anim.nebulaIntensity;
-            const rad = pt.orbitRadius + Math.sin(t * 1.5 + pt.phaseShift) * 16;
-            pt.x = cx + Math.cos(pt.orbitAngle) * rad;
-            pt.y = cy + Math.sin(pt.orbitAngle) * (rad * 0.6);
-          } else {
-            // 引力透镜吸引与弹簧阻尼收敛至字符像素目标点
-            const targetX = pt.tx;
-            const targetY = pt.ty;
-            const spring = 9.8 * attract;
-            const damping = 0.78;
-
-            const dx = targetX - pt.x;
-            const dy = targetY - pt.y;
-
-            pt.vx = (pt.vx + dx * spring * dt) * damping;
-            pt.vy = (pt.vy + dy * spring * dt) * damping;
-
-            pt.x += pt.vx * dt * 60;
-            pt.y += pt.vy * dt * 60;
-          }
-
-          // 粒子渲染与颜色演进
-          const particleAlpha = (1 - anim.crystallization * 0.92) * pt.baseAlpha;
-          if (particleAlpha > 0.02) {
-            let fillColor = "#00FF66";
-            if (isLightBg) {
-              if (pt.colorType === "gold") fillColor = "#FFB000";
-              else if (attract > 0.6) fillColor = "#111111";
-              else fillColor = "#555555";
-            } else {
-              if (pt.colorType === "gold") fillColor = "#FFB000";
-              else if (pt.glow) fillColor = "#FFFFFF";
-              else fillColor = "#38BDF8";
-            }
-
-            ctx.font = `600 ${pt.size}px "SF Mono", Consolas, monospace`;
-            ctx.fillStyle = fillColor;
-            ctx.globalAlpha = particleAlpha;
-            ctx.fillText(pt.codeChar, pt.x, pt.y);
-
-            // 高亮粒子微型发光晶格连线
-            if (pt.glow && i % 8 === 0 && attract > 0.2 && attract < 0.9) {
-              const nextPt = particles[(i + 13) % particles.length];
-              const dist = Math.hypot(pt.x - nextPt.x, pt.y - nextPt.y);
-              if (dist < 80) {
-                ctx.strokeStyle = isLightBg ? "rgba(17,17,17,0.15)" : "rgba(255,255,255,0.2)";
-                ctx.lineWidth = 0.8;
-                ctx.beginPath();
-                ctx.moveTo(pt.x, pt.y);
-                ctx.lineTo(nextPt.x, nextPt.y);
-                ctx.stroke();
-              }
-            }
-          }
-        }
-        ctx.restore();
-      }
-
-      // 6. 高清实体文字定格 (Crystallization)
-      if (anim.crystallization > 0.01) {
-        ctx.save();
-        const fontSize = bounds.fontSize;
+        const fontSize = Math.max(52, Math.min(w * 0.115, 120));
         ctx.font = `700 ${fontSize}px "Space Grotesk", -apple-system, sans-serif`;
         ctx.textAlign = "center";
         ctx.textBaseline = "middle";
         ctx.fillStyle = "#111111";
-        ctx.globalAlpha = anim.crystallization;
-        ctx.fillText("CodePaint", cx, cy);
+        ctx.globalAlpha = anim.logoAlpha;
+        ctx.fillText("CodePaint", cx, cy - 8);
 
         // 工坊副标印章
         ctx.font = "600 11px monospace";
         ctx.letterSpacing = "0.26em";
-        ctx.fillStyle = "rgba(17, 17, 17, 0.65)";
-        ctx.fillText("ENGINEERING & CREATIVE ATELIER", cx, cy + fontSize * 0.72);
+        ctx.fillStyle = "rgba(17, 17, 17, 0.68)";
+        ctx.fillText("ENGINEERING & CREATIVE ATELIER", cx, cy + fontSize * 0.70);
         ctx.restore();
       }
 
-      // 7. 极客工程准星、坐标 HUD 与校准微标尺
-      if (anim.hudOpacity > 0.02) {
+      // 7. 极客工程准星与 HUD
+      if (anim.hudAlpha > 0.02) {
         ctx.save();
         ctx.strokeStyle = isLightBg ? "rgba(17, 17, 17, 0.35)" : "rgba(255, 255, 255, 0.4)";
         ctx.lineWidth = 1;
-        ctx.globalAlpha = anim.hudOpacity;
+        ctx.globalAlpha = anim.hudAlpha;
 
+        const fontSize = Math.max(52, Math.min(w * 0.115, 120));
         const cross = 14;
-        const hudW = bounds.w / 2 + 48;
-        const hudH = 58;
+        const hudW = fontSize * 2.7;
+        const hudH = fontSize * 0.62;
         const corners = [
           [cx - hudW, cy - hudH],
           [cx + hudW, cy - hudH],
@@ -499,57 +696,52 @@ export function IntroCurtain({ onComplete }: IntroCurtainProps) {
 
     rafId = requestAnimationFrame(render);
 
-    // GSAP 电影级时间轴节奏编排 (总时长 ~6.8s，沉稳而惊艳)
+    // GSAP 电影级时间轴节奏编排 (代码块展示 -> 慢速挤压消融 -> 水墨晕染 -> 油彩显现)
     const tl = gsap.timeline({
       onComplete: handleFinish,
     });
 
-    // Chapter 1: 代码暗夜微光漫游 (0s ~ 1.8s)
+    // Chapter 1: 真实 TS / Go / Rust / Binary 代码块优雅浮现 (0s ~ 2.4s)
     tl.to(anim, {
-      nebulaIntensity: 1.0,
+      codeEntrance: 1.0,
       duration: 1.8,
-      ease: "power1.out",
+      ease: "power2.out",
     }, 0)
 
-    // Chapter 2: 引力启动、水墨相变、背景从纯黑晕染至温润米白 (1.8s ~ 3.6s)
+    // Chapter 2: 柔缓慢镜头引力挤压：代码块向中心平滑收缩坍缩，背景从深黑晕染至米白 (2.4s ~ 5.2s)
     .to(anim, {
-      particleAttract: 0.7,
-      duration: 1.8,
+      squeezeProgress: 1.0,
+      duration: 2.8,
       ease: "power2.inOut",
-    }, "phase1")
+    }, "squeeze")
     .to(anim, {
       bgProgress: 0.52,
-      inkDiffusion: 1.0,
-      hudOpacity: 0.85,
-      duration: 1.8,
-      ease: "power2.inOut",
+      inkWash: 1.0,
+      hudAlpha: 0.85,
+      duration: 2.6,
+      ease: "sine.inOut",
       onUpdate: () => setIntroProgress(anim.bgProgress),
-    }, "phase1+=0.2")
+    }, "squeeze+=0.3")
 
-    // Chapter 3: 黄金笔刷横扫、粒子结晶锁紧、升华至纯净纸白 (3.6s ~ 5.4s)
+    // Chapter 3: 黄金笔刷横扫、CodePaint 锐利显影、过渡至纯净纸白 (5.2s ~ 6.8s)
     .to(anim, {
-      particleAttract: 1.0,
-      brushStroke: 1.0,
-      crystallization: 1.0,
+      brushSweep: 1.0,
+      logoAlpha: 1.0,
       bgProgress: 1.0,
-      hudOpacity: 1.0,
+      hudAlpha: 1.0,
       duration: 1.6,
       ease: "power3.out",
       onUpdate: () => setIntroProgress(anim.bgProgress),
-    }, "phase2")
+    }, "crystallize")
 
-    // Chapter 4: 荣耀定格与呼吸光圈停留 (5.4s ~ 6.5s)
-    .to(anim, {
-      finalAura: 1.0,
-      duration: 1.1,
-      ease: "none",
-    })
+    // Chapter 4: 荣耀定格停留 (6.8s ~ 7.5s)
+    .to({}, { duration: 0.7 })
 
-    // Chapter 5: 柔焦开幕，无缝交接给 VideoHero (6.5s ~ 7.2s)
+    // Chapter 5: 柔焦开幕，无缝交接给 VideoHero (7.5s ~ 8.1s)
     .to(container, {
       opacity: 0,
       scale: 1.035,
-      duration: 0.65,
+      duration: 0.6,
       ease: "power2.inOut",
     });
 

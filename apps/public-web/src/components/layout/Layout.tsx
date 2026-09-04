@@ -1,7 +1,7 @@
 import { useEffect, type ReactNode } from "react";
 import { Header } from "./Header";
-import { ApplyOverlay } from "./ApplyOverlay";
-import { useAppStore } from "../store/appStore";
+import { ApplyOverlay } from "../application/ApplyOverlay";
+import { useAppStore } from "../../store/appStore";
 
 type LayoutProps = {
   children: ReactNode;

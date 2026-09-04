@@ -1,8 +1,8 @@
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import { BrowserRouter } from "react-router-dom";
-import { Layout } from "./components/Layout";
-import { CinematicHome } from "./components/CinematicHome";
+import { Layout } from "./components/layout/Layout";
+import { CinematicHome } from "./routes/home/CinematicHome";
 import "./index.css";
 
 function App() {

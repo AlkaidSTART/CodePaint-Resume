@@ -46,7 +46,7 @@ export function VideoHero() {
 
     const resize = () => {
       const rect = section.getBoundingClientRect();
-      dpr = Math.min(window.devicePixelRatio || 1, 2);
+      dpr = Math.min(window.devicePixelRatio || 1, 1.5);
       canvas.width = Math.max(1, Math.floor(rect.width * dpr));
       canvas.height = Math.max(1, Math.floor(rect.height * dpr));
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
@@ -272,6 +272,12 @@ export function VideoHero() {
 
     tick = (now: number) => {
       if (!running) return;
+      // 被后幕盖住大半时跳过绘制：scrub 最卡的那段不再和幕布抢 GPU。
+      const sr = section.getBoundingClientRect();
+      if (sr.bottom < window.innerHeight * 0.45) {
+        rafId = requestAnimationFrame(tick);
+        return;
+      }
       const w = canvas.width / dpr;
       const h = canvas.height / dpr;
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
@@ -310,7 +316,7 @@ export function VideoHero() {
       tl.addLabel("intro", 0.1);
       tl.from(s1.chars ?? [], { yPercent: 70, autoAlpha: 0, stagger: 0.024, duration: 0.7 }, "intro");
       tl.addLabel("second", "-=0.45");
-      tl.from(tilt as HTMLElement, { rotation: -12, y: 40, autoAlpha: 0, duration: 0.9 }, "second");
+      tl.from(tilt as HTMLElement, { rotation: -6, y: 24, autoAlpha: 0, duration: 0.9 }, "second");
       tl.from(line2 as HTMLElement, { y: 26, autoAlpha: 0, duration: 0.7 }, "second+=0.1");
       if (squiggle)
         tl.fromTo(
@@ -330,7 +336,7 @@ export function VideoHero() {
   return (
     <section
       ref={sectionRef}
-      className="relative isolate flex h-screen min-h-[600px] w-full flex-col justify-between overflow-hidden px-4 pt-28 pb-8 sm:px-6 sm:pt-32"
+      className="relative isolate flex h-[100dvh] min-h-[600px] w-full flex-col justify-between overflow-hidden px-4 pt-28 pb-8 sm:px-6 sm:pt-32"
       aria-label="CodePaint hero"
       style={{
         backgroundImage:
@@ -362,7 +368,7 @@ export function VideoHero() {
 
       {/* 第二句：右下，整块 -4° 倾斜 */}
       <div className="relative z-10 flex w-full justify-end">
-        <div data-hero="tilt" style={{ transform: "rotate(-4deg)" }} className="text-right">
+        <div data-hero="tilt" className="text-right">
           <p
             data-hero="line2"
             className="font-grot font-medium text-[#111]"

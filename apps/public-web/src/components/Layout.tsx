@@ -9,6 +9,7 @@ type LayoutProps = {
 
 export function Layout({ children }: LayoutProps) {
   const isApplyOpen = useAppStore((state) => state.isApplyOpen);
+  const openApply = useAppStore((state) => state.openApply);
   const closeApply = useAppStore((state) => state.closeApply);
 
   useEffect(() => {
@@ -18,7 +19,7 @@ export function Layout({ children }: LayoutProps) {
 
   return (
     <div className="min-h-screen bg-[#fffffc] text-black">
-      <Header />
+      <Header onApply={openApply} />
       <main>{children}</main>
       {isApplyOpen && <ApplyOverlay onClose={closeApply} />}
     </div>

@@ -2,13 +2,13 @@ import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import { BrowserRouter } from "react-router-dom";
 import { Layout } from "./components/Layout";
-import { VideoHero } from "./components/VideoHero";
+import { CinematicHome } from "./components/CinematicHome";
 import "./index.css";
 
 function App() {
   return (
     <Layout>
-      <VideoHero />
+      <CinematicHome />
     </Layout>
   );
 }

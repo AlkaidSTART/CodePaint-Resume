@@ -14,7 +14,11 @@ const INK = "#111111";
 const PAPER = "#FFFFFC";
 const AMBER = "#FFB000";
 
-export function VideoHero() {
+interface VideoHeroProps {
+  startEntrance?: boolean;
+}
+
+export function VideoHero({ startEntrance = true }: VideoHeroProps) {
   const sectionRef = useRef<HTMLElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
@@ -305,7 +309,7 @@ export function VideoHero() {
       const line2 = root?.querySelector('[data-hero="line2"]');
       const squiggle = root?.querySelector('[data-hero="squiggle"]');
       const meta = root?.querySelector('[data-hero="meta"]');
-      if (!line1 || !line2) return;
+      if (!line1 || !line2 || !startEntrance) return;
       if (reduceMotion) {
         gsap.set([line1, tilt, line2, meta], { clearProps: "all", opacity: 1 });
         if (squiggle) gsap.set(squiggle, { strokeDashoffset: 0 });
@@ -330,7 +334,7 @@ export function VideoHero() {
         s1.revert();
       };
     },
-    { scope: sectionRef }
+    { scope: sectionRef, dependencies: [startEntrance] }
   );
 
   return (

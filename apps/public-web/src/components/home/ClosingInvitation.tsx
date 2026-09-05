@@ -301,18 +301,7 @@ export function ClosingInvitation() {
         ref={contentContainerRef}
         className="mx-auto w-full max-w-6xl px-4 sm:px-6 lg:px-8 will-change-transform transform-gpu"
       >
-        {/* 顶部席位预留与工位编号横幅 */}
-        <div className="mb-8 flex flex-wrap items-center justify-between gap-4 border-b border-black/10 pb-4">
-          <div className="flex items-center gap-2.5">
-            <span className="h-2.5 w-2.5 rounded-full bg-emerald-500 animate-ping" />
-            <span className="font-mono2 text-xs font-bold tracking-wider text-black/60 uppercase">
-              BAY #09 // WORKSTATION READY & WAITING
-            </span>
-          </div>
-          <span className="font-mono2 rounded-xs border border-sky-300 bg-sky-50 px-3 py-1 text-xs font-semibold text-sky-800">
-            TARGET: 2026 NEW COHORTS
-          </span>
-        </div>
+       
 
         {/* 主内容双列：左侧情感召唤与CTA，右侧实体工位场景与挂绳工牌 */}
         <div className="grid grid-cols-1 items-center gap-12 lg:grid-cols-12 lg:gap-14">

@@ -1,2 +1,35 @@
-docs/*
+# OS and editor files
 .DS_Store
+.AppleDouble
+.LSOverride
+.idea/
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.json
+
+# Environment and secrets
+.env
+.env.*
+!.env.example
+*.local
+
+# Node / pnpm / Vite
+node_modules/
+.pnpm-store/
+dist/
+build/
+.vite/
+*.tsbuildinfo
+
+# Go
+*.test
+*.out
+bin/
+
+# Local infrastructure data
+deploy/compose/data/
+*.log
+
+# Keep product and engineering documentation versioned.
+node_modules/
+docs/*

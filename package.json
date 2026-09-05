@@ -1,0 +1,22 @@
+{
+  "name": "codepaint-resume",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev:public": "pnpm --filter @codepaint/public-web dev",
+    "dev:admin": "pnpm --filter @codepaint/admin-web dev",
+    "dev": "pnpm --filter \"@codepaint/*\" dev",
+    "build": "pnpm --filter \"@codepaint/*\" build",
+    "typecheck": "pnpm --filter \"@codepaint/*\" typecheck",
+    "lint": "pnpm --filter \"@codepaint/*\" lint"
+  },
+  "devDependencies": {
+    "@types/react": "^19.0.0",
+    "@types/react-dom": "^19.0.0",
+    "typescript": "^5.7.0"
+  },
+  "packageManager": "pnpm@11.17.0",
+  "dependencies": {
+    "lucide-react": "^1.38.0"
+  }
+}

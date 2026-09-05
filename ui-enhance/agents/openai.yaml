@@ -1,0 +1,4 @@
+interface:
+  display_name: "UI-Design"
+  short_description: "创建层级清晰、自然克制、可访问且拒绝模板感的极简网页界面"
+  default_prompt: "Use $ui-design to design and implement this frontend page without generic AI-generated visual patterns."

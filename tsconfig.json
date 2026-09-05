@@ -1,0 +1,27 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "useDefineForClassFields": true,
+    "lib": ["ES2022", "DOM", "DOM.Iterable"],
+    "module": "ESNext",
+    "skipLibCheck": true,
+    "moduleResolution": "bundler",
+    "baseUrl": ".",
+    "paths": {
+      "@codepaint/types": ["packages/types/src/index.ts"],
+      "@codepaint/utils": ["packages/utils/src/index.ts"],
+      "@codepaint/auth-client": ["packages/auth-client/src/index.ts"],
+      "@codepaint/api-client": ["packages/api-client/src/index.ts"],
+      "@codepaint/ui": ["packages/ui/src/index.tsx"]
+    },
+    "allowImportingTsExtensions": false,
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "noEmit": true,
+    "jsx": "react-jsx",
+    "strict": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noFallthroughCasesInSwitch": true
+  }
+}

@@ -338,7 +338,7 @@ export function ClosingInvitation() {
             </h2>
 
             <p className="mt-6 text-base leading-relaxed text-black/70 sm:text-lg">
-              不必等到万事俱备才出发。工位已备好，显示器已通电，文档已解锁，学长学姐也已就位——
+              不必等到万事俱备才出发。文档已解锁，学长学姐也已就位——
               <br className="hidden sm:inline" />
               只要你对技术怀有真实的热忱，CodePaint 就有属于你的那一块屏幕。
             </p>

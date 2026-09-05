@@ -146,7 +146,7 @@ export function LookingFor() {
                   />
                 </svg>
               </span>
-              。
+              
             </h2>
           </div>
           <div className="lg:col-span-5">

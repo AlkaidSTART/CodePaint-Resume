@@ -1155,3 +1155,60 @@ TDD 中已有的基础接口可以映射为：
 ```
 
 这样既保留 TDD 中的领域接口，又通过 `/workspace` 明确招新成员的权限边界。实现时可以选择保留旧路径作为内部别名，但对前端公开的 API 建议统一使用本文档路径。
+
+---
+
+# 17. 插件与通知配置接口 (Plugins API)
+
+## 17.1 获取已挂载插件状态
+
+```http
+GET /workspace/plugins
+```
+
+响应：
+
+```json
+{
+  "data": [
+    {
+      "name": "feishu",
+      "display_name": "飞书录取通知与拉群机器人",
+      "enabled": true,
+      "config_masked": {
+        "webhook_url": "https://open.feishu.cn/open-apis/bot/v2/hook/****",
+        "has_secret": true
+      },
+      "last_delivery_at": "2026-09-06T12:00:00Z"
+    }
+  ],
+  "request_id": "req_01J..."
+}
+```
+
+## 17.2 测试插件连通性
+
+```http
+POST /workspace/plugins/feishu/test
+```
+
+请求：
+
+```json
+{
+  "test_message": "CodePaint ResumeFlow 连通性测试消息"
+}
+```
+
+响应：
+
+```json
+{
+  "data": {
+    "status": "delivered",
+    "latency_ms": 156
+  },
+  "request_id": "req_01J..."
+}
+```
+

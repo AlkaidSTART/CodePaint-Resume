@@ -105,6 +105,37 @@ export interface ScreeningAssessment {
   risks: string[];
 }
 
+export type CriterionStatus = "met" | "partial" | "not_met" | "unknown";
+export type ReviewPriority = "high" | "medium" | "low";
+
+export interface CriterionEvidence {
+  page: number;
+  quote: string;
+}
+
+export interface CriterionItem {
+  id: string;
+  name?: string;
+  weight?: number;
+  status: CriterionStatus;
+  confidence: number;
+  reason: string;
+  evidence: CriterionEvidence[];
+  is_overridden?: boolean;
+  human_status?: CriterionStatus | null;
+  override_reason?: string;
+}
+
+export interface CriteriaAssessment {
+  summary: string;
+  criteria: CriterionItem[];
+  strengths: string[];
+  concerns: string[];
+  suggested_interview_questions: string[];
+  review_priority: ReviewPriority;
+  calculated_score?: number;
+}
+
 export interface ResumeExtractionResult {
   basics: CandidateBasics;
   education: EducationItem[];
@@ -112,6 +143,7 @@ export interface ResumeExtractionResult {
   project_experience?: ProjectExperienceItem[];
   skills: string[];
   screening_assessment?: ScreeningAssessment;
+  criteria_assessment?: CriteriaAssessment;
 }
 
 export interface PluginInfo {

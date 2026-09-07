@@ -45,6 +45,13 @@
 | `MAILBOX_USER` | string | 条件 | - | 邮箱地址 | 招新邮箱账号 |
 | `MAILBOX_PASS` | string | 条件 | - | 授权码 (非登录密码) | 邮箱客户端授权码 |
 | `MAILBOX_POLL_INTERVAL`| duration | 否 | `60s` | 如 `30s`, `5m` | 轮询新邮件间隔 |
+| **邮件发送服务 (SMTP)** | | | | | |
+| `SMTP_ENABLED` | bool | 否 | `false` | `true` \| `false` | 是否开启异步状态邮件发送 |
+| `SMTP_HOST` | string | 条件 | - | Host (如 `smtp.163.com`) | SMTP 服务器地址 |
+| `SMTP_PORT` | int | 否 | `465` | 465 (SSL) \| 587 (STARTTLS) | SMTP 端口 (严禁填 993/143) |
+| `SMTP_USER` | string | 条件 | - | 邮箱地址 | 发件邮箱账号 |
+| `SMTP_PASS` | string | 条件 | - | 授权码 | 发件邮箱客户端授权码 |
+| `SMTP_FROM` | string | 条件 | - | `CodePaint <job@example.com>` | 发件人署名格式 |
 | **外部插件集成 (Plugins)** | | | | | |
 | `PLUGIN_FEISHU_ENABLED`| bool | 否 | `false` | `true` \| `false` | 是否开启飞书联动插件 |
 | `PLUGIN_FEISHU_WEBHOOK`| string | 条件 | - | `https://open.feishu.cn/open-apis/bot/v2/hook/...` | 飞书自定义机器人 Webhook |

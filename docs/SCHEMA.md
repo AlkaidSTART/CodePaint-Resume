@@ -101,18 +101,82 @@
       "items": { "type": "string" },
       "description": "标准化技能标签列表（如 Go, React, PostgreSQL, Docker, Redis）"
     },
-    "screening_assessment": {
+    "criteria_assessment": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["match_score", "highlights", "risks"],
+      "required": ["summary", "criteria", "strengths", "concerns", "suggested_interview_questions", "review_priority"],
       "properties": {
-        "match_score": { "type": "integer", "minimum": 0, "maximum": 100, "description": "综合评估分 0-100" },
-        "highlights": { "type": "array", "items": { "type": "string" }, "description": "候选人主要亮点（2-4条）" },
-        "risks": { "type": "array", "items": { "type": "string" }, "description": "潜在风险或疑点（如 频繁跳槽、专业不符、工作断档）" }
+        "summary": { "type": "string", "description": "候选人一句话结构化总结与评估概述" },
+        "criteria": {
+          "type": "array",
+          "description": "岗位硬性及软性准则逐项判断（Ashby 范式，杜绝主观随机打分）",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["id", "status", "confidence", "reason", "evidence"],
+            "properties": {
+              "id": { "type": "string", "description": "准则唯一标识（如 project_experience, engineering_quality, team_collaboration）" },
+              "status": { "type": "string", "enum": ["met", "partial", "not_met", "unknown"], "description": "符合程度" },
+              "confidence": { "type": "number", "minimum": 0, "maximum": 1, "description": "模型判断置信度" },
+              "reason": { "type": "string", "description": "简要评估理由" },
+              "evidence": {
+                "type": "array",
+                "description": "简历原文佐证，用于前端高亮定位与人工核对",
+                "items": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": ["page", "quote"],
+                  "properties": {
+                    "page": { "type": "integer", "description": "出处所在页码（从 1 开始）" },
+                    "quote": { "type": "string", "description": "简历原文直接摘录句子" }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "strengths": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "核心亮点列表（2-4条）"
+        },
+        "concerns": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "潜在风险或疑点（如 频繁跳槽、时间线重叠、缺乏落地指标）"
+        },
+        "suggested_interview_questions": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "基于简历疑点与亮点的针对性面试提问建议（3-5个）"
+        },
+        "review_priority": {
+          "type": "string",
+          "enum": ["high", "medium", "low"],
+          "description": "AI 建议人工审核优先级"
+        }
       }
     }
   }
 }
+```
+
+### 1.2 后端确定性评分算法 (Deterministic Scoring Formula)
+为保证评分可解释、可追溯且零随机性，AI 严禁直接给出 0-100 分总分，总分由后端程序确定性计算：
+
+$$Score = \sum_{i=1}^{N} \Big( Weight_i \times Value(Status_i) \Big)$$
+
+其中权重总和 $\sum Weight_i = 100$，状态映射系数定义：
+- `met` = $1.0$
+- `partial` = $0.5$
+- `not_met` = $0.0$
+- `unknown` = $0.0$
+
+### 1.3 审核员人工覆写与不一致率追踪 (Human Override & Disagreement)
+管理员在后台可对单个准则执行覆写：
+- 系统分别持久化 `ai_status` 与 `human_status`，禁止物理覆盖 AI 原始判断。
+- 记录 `is_overridden: boolean` 与 `override_reason: string`。
+- 系统自动统计 `ai_human_disagreement_rate`，作为提示词和准则调优的关键指标。
 ```
 
 ---
@@ -208,9 +272,106 @@
     "resume_id": "res_01J...",
     "application_id": "app_01J...",
     "source": "email",
-    "match_score": 88,
+    "calculated_score": 85.5,
+    "review_priority": "high",
     "top_skills": ["Go", "React", "Docker"],
+    "criteria_summary": {
+      "met_count": 3,
+      "partial_count": 1,
+      "not_met_count": 0
+    },
     "highlights": ["曾独立负责高并发网关重构", "在校ACM银牌"]
   }
 }
 ```
+
+---
+
+## 4. 事务性发件箱契约 (Transactional Outbox Schema)
+
+解决业务落库成功但 Redis/Asynq 投递失败的原子性问题，API 业务表与 `outbox_events` 必须在同一个 PostgreSQL 事务中提交。
+
+```sql
+CREATE TABLE outbox_events (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    workspace_id UUID NOT NULL,
+    event_type VARCHAR(64) NOT NULL,            -- 如 application.created, mail.ingested
+    aggregate_type VARCHAR(64) NOT NULL,        -- application, candidate, mail
+    aggregate_id VARCHAR(64) NOT NULL,
+    payload JSONB NOT NULL,
+    status VARCHAR(32) NOT NULL DEFAULT 'pending', -- pending, publishing, published, failed
+    attempts INT NOT NULL DEFAULT 0,
+    available_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    processed_at TIMESTAMPTZ,
+    last_error TEXT,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE INDEX idx_outbox_pending ON outbox_events(status, available_at) WHERE status = 'pending';
+```
+
+---
+
+## 5. 邮件收件幂等与原始 EML 归档契约 (Mail Ingestion & EML Archival)
+
+### 5.1 多层唯一幂等约束
+为了防止 Worker 重连、轮询和并发拉取导致重复建单，必须维护复合唯一约束与消息指纹：
+
+```sql
+CREATE TABLE mail_messages (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    workspace_id UUID NOT NULL,
+    mail_account_id UUID NOT NULL,
+    mailbox VARCHAR(64) NOT NULL DEFAULT 'INBOX',
+    uid_validity BIGINT NOT NULL,
+    uid BIGINT NOT NULL,
+    message_id VARCHAR(255) NOT NULL,
+    subject TEXT,
+    from_address VARCHAR(255) NOT NULL,
+    received_at TIMESTAMPTZ NOT NULL,
+    raw_eml_object_key TEXT NOT NULL,           -- S3: mail/raw/{account_id}/{year}/{message_id}.eml
+    text_body TEXT,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    CONSTRAINT uq_mail_uid UNIQUE (mail_account_id, mailbox, uid_validity, uid),
+    CONSTRAINT uq_mail_message_id UNIQUE (workspace_id, message_id)
+);
+```
+
+---
+
+## 6. 动态配置与加密凭据模型 (Dynamic Settings & Credentials)
+
+系统参数拆分为两层：
+1. **静态根密钥**：由环境变量注入（如 `DATA_ENCRYPTION_KEY`、`DATABASE_URL`）；
+2. **运行时动态参数与加密凭据**：支持工作台动态修改，无需重启容器。
+
+```sql
+CREATE TABLE system_settings (
+    key VARCHAR(64) PRIMARY KEY,
+    workspace_id UUID NOT NULL,
+    value JSONB NOT NULL,                       -- 动态并发数、RPM、解析超时、数据保留天数
+    description TEXT,
+    updated_by UUID,
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE TABLE secret_credentials (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    workspace_id UUID NOT NULL,
+    purpose VARCHAR(64) NOT NULL,               -- mail_imap_auth, mail_smtp_auth, webhook_secret
+    encrypted_value TEXT NOT NULL,              -- AES-256-GCM 密文: base64(nonce + cipher + tag)
+    key_version INT NOT NULL DEFAULT 1,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+```
+
+---
+
+## 7. 双状态机映射规范 (Business Stage vs Processing Status)
+
+系统严格分离业务审核流程与底层机器处理状态，禁止单字段混用：
+
+- **`business_stage` (业务阶段)**：
+  `new` (新投递) $\to$ `review` (初筛中) $\to$ `interview` (面试中) $\to$ `accepted` (已录用) / `rejected` (已淘汰) / `withdrawn` (候选人撤回)。
+- **`processing_status` (机器处理流水线)**：
+  `received` (材料已接收) $\to$ `validating` (文件校验与反病毒) $\to$ `extracting` (文本抽取) $\to$ `ai_reviewing` (Criteria 判定与评分) $\to$ `ready` (处理就绪) / `failed` (处理失败)。

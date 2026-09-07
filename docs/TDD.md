@@ -22,8 +22,14 @@ Email → File → Text/OCR → LLM → Validation → PostgreSQL → Search/Scr
 - 可重试；
 - 可观测；
 - provider 可替换；
-- 原始数据不可破坏；
+- 原始数据不可破坏（原始附件与 .eml 全量归档至 S3）；
 - Schema 驱动；
+- 事务性发件箱（Transactional Outbox 消除业务与任务队列不一致）；
+- 确定性评估（Ashby Criteria + 确定性算法取代大模型主观感觉分）；
+- 直传优先（S3 Presigned Upload 杜绝 API 内存代理大文件）；
+- 前置脱敏（送入 LLM 前伪匿名化，保护 PII 并规避模型偏见）；
+- 自愈补偿（定期 Reconciliation Worker 自动拯救掉线任务）；
+- 邮件风控（SMTP 仅限有界抖动重试，严禁自动跨 Provider 降级）；
 - 先简单后扩展。
 
 ---
@@ -610,60 +616,60 @@ normalization
 
 ---
 
-# 14. 解析 Pipeline
+# 14. 生产级简历处理流水线 (Pipeline)
 
-## Task 1：email.sync
+处理流水线采用职责单一、状态可恢复的分步设计：
 
-职责：
-
-- 拉取新邮件；
-- 去重；
-- 发现附件；
-- 创建 Attachment。
-
-## Task 2：attachment.download
-
-下载到对象存储。
-
-## Task 3：resume.extract_text
-
-尝试 PDF Text Extraction。
-
-## Task 4：resume.ocr
-
-文本质量不足时调用 OCR。
-
-## Task 5：resume.llm_parse
-
-执行：
-
-```text
-Text
-+
-Template
-+
-JSON Schema
+```mermaid
+flowchart LR
+    A[1. 邮件同步/官网直传] --> B[2. 原始文件与EML归档]
+    B --> C[3. 文本提取与质量评估]
+    C --> D{文本质量}
+    D -->|GOOD| E[4. 前置 PII 脱敏]
+    D -->|POOR/EMPTY| F[3.1 OCR/视觉模型兜底]
+    F --> E
+    E --> G[5. Criteria 结构化初筛]
+    G --> H[6. 后端确定性评分]
+    H --> I[7. 业务持久化落库]
+    I --> J[8. Outbox 触发后续流转]
 ```
 
-## Task 6：resume.validate
+## Task 1：email.sync & file.ingest
+- 官网直传：校验 S3 临时 Key 的存在性、MIME 头与 SHA-256 指纹。
+- 邮箱收件：基于 `ImapFlow` 流式解析，获取邮件唯一标识 `(mail_account_id, mailbox, uid_validity, uid)` 保证幂等入库。
 
-验证 JSON。
+## Task 2：raw_file.archive (原始文件与 EML 归档)
+- 将完整原始邮件 `.eml` 流式上传至私有存储：`mail/raw/{account_id}/{year}/{message_id}.eml`。
+- 保证解析器版本升级或 Prompt 调整后，可全量重跑历史邮件，不破坏原始凭证。
 
-失败：
+## Task 3：resume.extract_text (分级文本抽取)
+- **Level 1 (本地纯文本提取)**：使用本地库快速提取字符，计算提取指标：`character_count`、`page_count`、`replacement_ratio`。
+- **质量评级判定**：
+  - `GOOD`（字符数 ≥ 300 且乱码比例 < 2%）：直接进入后续脱敏阶段。
+  - `POOR / EMPTY`（扫描件图片、文字严重破损）：流转至 Task 3.1。
 
-```text
-Retry
-```
+## Task 3.1：resume.ocr_or_vision (OCR / 视觉兜底)
+- 仅在 Level 1 文本质量不足时，触发本地 OCR 引擎或视觉模型。
+- 避免对所有正常 PDF 调用多模态视觉模型，降低 80% 以上 Token 与延迟开销。
 
-连续失败：
+## Task 4：resume.redact_pii (前置去标识化)
+- 在送入第三方 LLM 之前，利用本地正则流水线脱敏候选人姓名、手机号、邮箱、家庭地址及身份证号。
+- 转换为代号（如 `Candidate #A98F3`），防止外部大模型收集个人信息，同时消除性别/年龄/地域带来的 AI 偏见。
 
-```text
-failed
-```
+## Task 5：resume.criteria_review (Ashby 范式准则初筛)
+- 将脱敏文本与岗位定义的评估准则（Criteria）拼接，请求大模型 Strict JSON Mode。
+- 模型仅输出准则状态（`met` / `partial` / `not_met` / `unknown`）、置信度与原文页码佐证（`evidence: [{page, quote}]`）。
 
-## Task 7：resume.persist
+## Task 6：resume.calculate_score (后端确定性算分)
+- 执行加权求和公式：$Score = \sum \Big( Weight_i \times Value(Status_i) \Big)$。
+- 计算得出最终客观评分，映射推荐审核优先级（`high` / `medium` / `low`）。
 
-更新 Candidate / Resume / ParseRun。
+## Task 7：resume.persist (状态落库)
+- 更新 `resumes`、`resume_parse_runs`、`criteria_evaluations`。
+- 将 `processing_status` 推进至 `ready`。若任一环节抛出不可重试错误，则置为 `failed`。
+
+## Task 8：outbox.dispatch (事务性事件分发)
+- 写入 `outbox_events` 表，由后台调度器分发事件总线，触发飞书群通知或状态邮件入队。
 
 ---
 
@@ -1340,3 +1346,64 @@ Docker Compose
 MVP 阶段不建议拆微服务。
 
 只有 OCR 可以作为独立服务，因为它天然具有独立运行时与资源需求。
+
+---
+
+# 26. 事务性发件箱模式实现 (Transactional Outbox Pattern)
+
+### 26.1 问题场景
+若在 HTTP 请求处理中采用 `db.Insert(app); asynqClient.Enqueue(task)`，若 Redis 超时或服务在中间瞬间崩溃，将导致数据库有报名记录，但永远不会被 Worker 解析，形成“死单”。
+
+### 26.2 解决方案
+- **原子事务写入**：
+  ```go
+  tx, _ := db.Begin(ctx)
+  // 1. 写入业务实体
+  tx.Exec(ctx, "INSERT INTO applications ...")
+  // 2. 写入 Outbox 事件
+  tx.Exec(ctx, "INSERT INTO outbox_events (event_type, payload, status) VALUES ($1, $2, 'pending')", "application.created", payload)
+  tx.Commit(ctx)
+  ```
+- **Outbox Dispatcher**：
+  后台单实例协程通过 `SELECT ... FOR UPDATE SKIP LOCKED` 批量拉取 `pending` 事件投递至 Asynq，投递成功后更新为 `published`；若重试多次失败则记入 `failed` 并告警。
+
+---
+
+# 27. 前端直传对象存储架构 (Presigned Direct Upload)
+
+### 27.1 架构权衡
+- 传统方案：`Browser -> Go API (20MB Buffer) -> S3`。在招新高峰期，并发上传会导致 API 进程 OOM 或占用大量带宽连接。
+- 直传方案：`Browser -> API (/public/uploads/presign) -> S3 直接 PUT -> API (/applications 传 object_key)`。
+- **安全核验**：API 收到报名请求后，必须通过 S3 `HeadObject` 校验：
+  1. Key 属于当前上传 Session 的预设临时路径；
+  2. 文件大小符合限制 (≤ 20MB)；
+  3. Content-Type 为可信 PDF/DOCX；
+  4. 校验通过后将文件从 `applications/temp/` 移动至持久目录 `applications/{id}/resume-original.pdf`。
+
+---
+
+# 28. 掉线任务自愈补偿机制 (Self-Healing Reconciliation)
+
+### 28.1 兜底巡检协程
+即使有 Outbox 与 Asynq 重试，极端网络异常仍可能使任务挂起。系统部署每 5 分钟执行一次的巡检 Job：
+1. 查询 PostgreSQL 中满足以下条件的记录：
+   - `processing_status != 'ready'` 且 `processing_status != 'failed'`；
+   - 距离上一次状态更新时间超过 15 分钟；
+2. 校验 Redis 中是否存在该 `application_id` 的 active / pending 任务；
+3. 若无活跃任务，自动触发重入队补偿，并在审计日志中标记 `reconciliation_triggered`。
+
+---
+
+# 29. SMTP 发信风控与有界退避策略
+
+### 29.1 异步可靠发信
+- 邮件发送一律走 Asynq 队列处理，严禁在 HTTP 请求链路中同步等待 SMTP 握手。
+- 错误分类：
+  - 瞬时错误（4xx 响应、连接超时）：采用**带 Jitter 的有界指数退避**（1m $\to$ 5m $\to$ 15m $\to$ 1h），最大重试 4 次。
+  - 永久错误（5xx 邮箱不存在、域名被拒）：立即置为 `failed`，通知管理员人工介入。
+
+### 29.2 架构红线：禁止跨 Provider 自动降级 (No Provider Fallback)
+系统**严禁**在当前配置的 SMTP 邮箱（如网易企业邮）发送失败后，自动切换到备用个人邮箱（如 Gmail/QQ 邮箱）。跨域发件会导致：
+1. 候选人对发件人身份产生严重信任危机；
+2. 触发邮件服务商反垃圾风控与域名信誉级联污染。
+发件失败的唯一标准处理方式为：**报警 $\to$ 记录死信 $\to$ 管理员人工核实后在工作台手动重试**。

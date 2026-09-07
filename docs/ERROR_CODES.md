@@ -49,7 +49,7 @@
 | `LLM_SCHEMA_INVALID` | 502 | PERMANENT | 模型输出未能通过 JSON Schema 严格校验 | 触发自修正提示词或人工复核 |
 | `LLM_AUTH_FAILED` | 500 | PERMANENT | API Key 欠费或秘钥失效 | 告警管理员检查 Key |
 
-### 2.4 邮箱监听级 (MAIL)
+### 2.4 邮箱与通信级 (MAIL / SMTP)
 
 | 错误码 Code | 类别 | 描述 / 触发场景 | 处理逻辑 |
 | :--- | :--- | :--- | :--- |
@@ -57,8 +57,19 @@
 | `MAIL_CONNECTION_TIMEOUT`| TRANSIENT | 邮件服务器网络抖动或 DNS 解析失败 | 下一个轮询周期重试连线 |
 | `MAIL_MESSAGE_ID_DUPLICATE`| CONFLICT | 邮件 Message-ID 已在历史表中 | 跳过该邮件，不重复处理 |
 | `MAIL_NO_ATTACHMENT` | CONFLICT | 邮件正文无简历附件 | 记录忽略日志 |
+| `MAIL_SMTP_AUTH_FAIL` | PERMANENT | 发信 SMTP 授权码失效或认证拒绝 | 立即置为 failed，告警通知人工更新 |
+| `MAIL_SMTP_TEMP_FAIL` | TRANSIENT | 邮件服务商 4xx 临时错误 (421/450/451/452) | 带 Jitter 指数退避重试 (1m, 5m, 15m, 1h) |
+| `MAIL_SMTP_PERM_FAIL` | PERMANENT | 邮件服务商 5xx 永久拒绝 (收件人不存在/拒收) | 终止重试，严禁自动换 Provider，人工核实 |
 
-### 2.5 插件与事件级 (PLUGIN)
+### 2.5 直传与事务调度级 (UPLOAD / OUTBOX)
+
+| 错误码 Code | HTTP 状态 | 类别 | 描述 / 触发场景 | 处理逻辑 |
+| :--- | :--- | :--- | :--- | :--- |
+| `UPLOAD_PRESIGN_EXPIRED` | 400 | PERMANENT | 直传凭证过期 (超过 15 分钟) | 提示用户重新获取凭证直传 |
+| `UPLOAD_OBJECT_NOT_FOUND` | 404 | PERMANENT | S3 中未检测到指定的临时文件 | 拒绝报名提交，引导重新上传 |
+| `OUTBOX_DISPATCH_FAILED` | 500 | TRANSIENT | 发件箱向 Asynq 投递网络闪断 | 调度器在下一个轮询周期批量重发 |
+
+### 2.6 插件与事件级 (PLUGIN)
 
 | 错误码 Code | 类别 | 描述 / 触发场景 | 处理逻辑 |
 | :--- | :--- | :--- | :--- |

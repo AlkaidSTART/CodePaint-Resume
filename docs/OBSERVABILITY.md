@@ -79,3 +79,31 @@
 | `queue_failed_count` | 彻底进入死信队列的失败任务数 | 0 | > 5 | 查看失败原因，排查大模型欠费或服务挂掉 |
 | `task_latency_seconds` | 单任务平均端到端解析耗时 | 2s - 8s | > 30s | 检查大模型 API 响应延迟与并发限流 |
 | `mailbox_last_poll_time` | 邮箱最后一次成功轮询时间 | < 3m | > 10m | 检查 IMAP 网络连通性与账号密码状态 |
+
+---
+
+## 5. AI 成本与效果评估监控 (AI Metrics)
+
+```text
+ai_requests_total{provider="openai_compatible", status="success|error"}
+ai_input_tokens_total
+ai_output_tokens_total
+ai_cost_cents_total
+ai_human_disagreement_rate           # 人工覆写率 = (覆写准则数 / 总评估准则数)
+```
+
+- **不一致率告警**：若某批次 `ai_human_disagreement_rate > 35%`，表明当前岗位 Criteria 描述与审核人员心智存在较大偏差，需微调 Prompt 或权重。
+- **Token 与成本预警**：单日花费超过预算阈值（如 $50）触发钉钉/飞书告警并自动限制大模型并发。
+
+---
+
+## 6. 自愈补偿与生产告警矩阵 (Alerting Matrix)
+
+| 告警规则 | 触发条件 | 告警级别 | 响应预案 |
+| :--- | :--- | :--- | :--- |
+| `IMAPConnectionDropped` | 连续 3 次轮询连线失败（> 5分钟） | P1 (Critical) | 检查网易企业邮授权码有效性及外网 DNS |
+| `AIFailureRateHigh` | 5 分钟内大模型调用失败率 > 20% | P1 (Critical) | 排查 API Key 余额或上游 429 速率限制 |
+| `QueueBacklogCritical` | Asynq 积压任务数 > 150 且持续 10 分钟 | P2 (Warning) | 在工作台动态调高 Worker Concurrency |
+| `OutboxDispatchStalled`| 处于 `pending` 状态事件滞留超过 5 分钟 | P1 (Critical) | 检查 Outbox Dispatcher 协程存活性与 PG 锁 |
+| `SMTPPermFailure` | 出现收件人地址不存在或退信 | P3 (Info) | 标记候选人联系方式异常，工作台人工介入 |
+| `ReconciliationRescued`| 单次自愈巡检重入队任务数 > 10 | P2 (Warning) | 检查 Worker 节点是否发生 OOM 重启或网络丢包 |

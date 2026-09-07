@@ -1,118 +1,130 @@
-# CodePaint ResumeFlow — AI Agent & Developer Guide (AGENTS.md)
+# CodePaint ResumeFlow — AI Agent & Developer Operating Guide (AGENTS.md)
 
-> 适用主体：Claude Code、OpenAI Codex、ZCode、Hermes Agent 及所有协作开发者  
-> 规范等级：**强约束 (Non-negotiable)**。任何 Agent 进入本仓库必须首先阅读并无条件遵循本文件。  
-> 核心原则：**生产级标准 (Production-Ready) + 规范驱动开发 (Spec-Driven)**。禁止脱离契约自由发挥。
+> **适用范围**：Claude Code、OpenAI Codex、Hermes Agent、ZCode 及所有协作开发者  
+> **约束等级**：**最高强约束 (Non-negotiable Zero-Tolerance)**。任何 Agent 必须无条件遵循。  
+> **核心原则**：契约优先 (Spec-Driven)、最小改动 (Surgical Diff)、真实验证 (Verifiable Quality Gate)。
 
 ---
 
-## 1. 架构总览与目录边界
+## 1. 优先级阶梯 (Instruction Precedence)
 
-本仓库为 pnpm + Go 混合 Monorepo，各模块职责边界严密隔离：
+当指令、文档与代码发生冲突时，严格按以下层级裁决，高优先级无条件覆盖低优先级：
+
+1. **User Explicit Prompt**（用户当轮显式指令）
+2. **`AGENTS.md`**（本文件：仓库全局治理、安全红线、质量门禁）
+3. **`docs/*` 权威规范**（`PRD.md`、`API.md`、`SCHEMA.md`、`ENV_MATRIX.md` 等单一事实源）
+4. **`harness/rules/*` & `ui-enhance/SKILL.md`**（领域研发规范与 UI 设计规范）
+5. **现有代码实现模式**
+6. **Agent 默认偏好 / 模型假设**（最低优先级，严禁脑补）
+
+> **红线规则**：代码永不得反向覆盖 `docs/*` 契约。若发现代码与文档冲突，以 `docs/*` 为准；确需变更契约必须显式同步更新文档。
+
+---
+
+## 2. 架构与边界隔离红线 (Blast-Radius Control)
+
+本仓库为 pnpm + Go 混合 Monorepo，严禁跨越以下架构红线：
 
 ```text
 CodePaint-Resume/
 ├── apps/
-│   ├── public-web      # 普通用户端：公开招新展示、在线投递、个人状态查询 (React + Vite)
-│   └── admin-web       # 招新成员后台：候选人看板、简历详情、解析重试、状态流转 (React + Vite)
-├── backend/            # 后端单体服务 (Go 1.22+ / Gin / Asynq / pgxpool / PostgreSQL / Redis)
-│   ├── cmd/api         # HTTP API Server
-│   ├── cmd/worker      # 异步任务 Worker (PDF 文本提取 + LLM 结构化解析 + 插件消费)
-│   ├── cmd/migrate     # 数据库 Schema 迁移工具
-│   └── internal/       # 核心业务逻辑 (domain, repository, service, task, provider, plugin)
+│   ├── public-web      # 候选人端：招新展示、在线报名、状态查询 (React + Vite)
+│   └── admin-web       # 招聘官端：候选人看板、简历详情、解析重试 (React + Vite)
+├── backend/            # 后端核心单体 (Go 1.22+ / Gin / Asynq / pgxpool / Postgres / Redis)
 ├── packages/
-│   ├── types           # 全局 TypeScript 类型单一事实源 (@codepaint/types)
-│   ├── api-client      # 前端 Axios / Fetch API 统一客户端 (@codepaint/api-client)
-│   ├── auth-client     # 前端鉴权与 Session 客户端 (@codepaint/auth-client)
-│   └── ui              # 跨应用共享基础 UI 组件 (@codepaint/ui)
-├── docs/               # 核心规范与架构设计字典 (Single Source of Truth)
-├── harness/            # 研发流程规则与评审检查清单
-├── migrations/         # 生产级 SQL 数据库版本迁移脚本
-└── ui-enhance/         # 前端与 UI 专属设计规范 (UI-Enhance Skill)
+│   ├── types           # 全局 TS 类型唯一定义源 (@codepaint/types)
+│   ├── api-client      # 统一 API 客户端 (@codepaint/api-client)
+│   ├── auth-client     # 统一鉴权工具库 (@codepaint/auth-client)
+│   └── ui              # 跨应用共享纯基础 UI (@codepaint/ui)
+├── docs/               # 8 大权威事实源 (PRD/API/SCHEMA/ENV_MATRIX/ERROR_CODES/SECURITY/OBSERVABILITY/TDD)
+├── harness/            # 研发流程引擎 (checklists, rules, workflows, knowledge)
+└── ui-enhance/         # UI 设计专属规范 (SKILL.md)
 ```
 
-- **隔离红线**：
-  - `public-web` 与 `admin-web` 严禁共享业务 Layout、页面路由与私有业务状态。
-  - 前后端数据交互严格依赖 `packages/types` 与 `docs/API.md`，禁止在前端各自随意定义 interface。
-  - 前端 UI 的任何开发与样式修改，**必须严格遵循 `ui-enhance/SKILL.md` 内的设计规范与质检清单**。
+- **双前端绝对物理隔离**：`public-web` 与 `admin-web` 严禁互相引用，严禁共享业务 Layout、页面路由及私有状态。
+- **类型单一事实源**：所有跨模块业务数据模型必须在 `packages/types` 中定义并导出。**严禁在前端组件内擅自定义 ad-hoc 接口**。
+- **后端单向依赖分层**：`cmd/` → `internal/httpserver` & `internal/task` → `internal/service` → `internal/repository` → `internal/domain`。`domain` 严禁反向依赖外层。
+- **保护性只读清单（未经显式要求严禁擅改）**：
+  - `docs/*.md` 契约文件
+  - 已生效的历史迁移脚本 `backend/internal/migrations/*.go` / `migrations/*.sql`
+  - 依赖锁文件 `pnpm-lock.yaml`、`backend/go.sum`（仅允许包管理工具自动更新，严禁人工/Agent 手写编辑）
 
 ---
 
-## 2. 八大权威规范文档 (Single Source of Truth)
+## 3. 不可逾越的八大生产级军规 (Ironclad Rules)
 
-在编写任何代码或配置前，必须强制查阅对应文档。若代码与文档存在分歧，以文档为准或显式更新文档：
-
-1. **`docs/PRD.md`**：产品需求规格书、用户旅程、RBAC 角色范围、第 19 节插件生态。
-2. **`docs/API.md`**：RESTful 接口契约、分页标准、输入输出 JSON 格式、第 17 节插件接口。
-3. **`docs/SCHEMA.md`**：
-   - **LLM Strict JSON Schema**：大模型结构化提取字段规范（Strict Mode）。
-   - **双有限状态机 (FSM)**：申请单与简历解析合法流转规则。
-   - **事件总线契约 (Event Bus)**：`application.status.changed` 等插件事件载荷。
-4. **`docs/ENV_MATRIX.md`**：环境变量与配置字典。**严禁发明任何未经此文档登记的环境变量名**。
-5. **`docs/ERROR_CODES.md`**：错误码字典。严格区分 `TRANSIENT` (Asynq 指数重试) 与 `PERMANENT` (立刻终结)。
-6. **`docs/SECURITY_PII.md`**：安全与隐私合规。私有 Bucket、15 分钟临时 Presigned URL、AES-256-GCM 凭证加密、日志脱敏。
-7. **`docs/OBSERVABILITY.md`**：链路追踪 TraceID、结构化 JSON 日志、`/healthz` 与 `/readyz` 探针、队列监控指标。
-8. **`docs/TDD.md`**：技术架构设计与基础设施选型依据。
+| 领域 | ❌ 严禁行为 (FORBIDDEN - 审查即拒绝) | ✅ 合规标准 (REQUIRED PATTERN) |
+|---|---|---|
+| **多租户隔离** | 业务查询裸写 `WHERE id = $1` | 所有租户数据查询强制绑定 `WHERE id = $1 AND workspace_id = $2` |
+| **异步解析** | HTTP 请求中同步执行 PDF 抽取或 LLM 解析 | 仅写库并投递 Asynq 任务，HTTP 接口在 200ms 内响应 `202 Accepted` |
+| **简历与材料防护** | 将原始简历存放在静态公开目录或暴露直接外链 | 存入私有 Bucket，下载/预览仅分发有效期 ≤ 15 分钟的 Presigned URL |
+| **环境变量管理** | 在代码中随意使用未经登记的环境变量 | 任何环境变量必须已在 `docs/ENV_MATRIX.md` 中注册，严禁擅自发明 |
+| **凭证与敏感数据** | 明文存储邮箱授权码/Webhook Secret；日志打印 PII | 必须使用 AES-256-GCM 密文存储（字段名带 `_encrypted`），日志严格脱敏 |
+| **代码与错误控制** | TS 滥用 `any`；Go 忽略错误 (`_ = err`) 或裸抛 panic | 开启 TS Strict Mode；Go 必须使用 `fmt.Errorf("action: %w", err)` 包装链路 |
+| **UI 与视觉规范** | 随手写内联 CSS、大面积炫目渐变、金色系堆砌 | 严格遵照 `ui-enhance/SKILL.md`，黑白冷灰筑基，品牌蓝点睛，GSAP 流畅微交互 |
+| **改动膨胀 (YAGNI)**| 借修复之名重构无关模块、随意新增三方依赖 | 手术刀式精准修改；优先利用语言标准库与已有依赖；无关文件零修改 |
 
 ---
 
-## 3. 生产级编码军规 (AI Coding 铁律)
+## 4. 确定性研发工作流 (5-Phase Execution Loop)
 
-### 3.1 安全与多租户隔离 (Tenant Boundary)
-- **后端是唯一安全边界**：前端隐藏按钮不构成安全防护。所有接口必须在 Go 端强制校验 RBAC 角色。
-- **租户隔离**：所有涉及业务数据的 SQL 查询，`WHERE` 条件必须显式包含 `workspace_id = $1`。严禁裸写 `WHERE id = $1`。
-- **简历文件防护**：严禁将原始简历存储在公开访问路径，下载/预览一律请求专用接口获取临时 Presigned URL。
-- **敏感字段加密**：邮箱授权码、第三方 Webhook Secret 在落库时必须采用 AES-256-GCM 密文存储（字段名带 `_encrypted`）。
+Agent 承接任务必须按阶段推进，严禁未经验证提前宣称完成：
 
-### 3.2 异步与高并发处理 (Worker & Task)
-- **严禁同步阻塞解析**：HTTP 接口接收到简历上传或抓取后，仅写入存储并投递 Asynq 任务，必须在 200ms 内向前端返回 `202 Accepted`。
-- **防止重复解析 (幂等性)**：通过文件的 `sha256` 与邮件的 `message_id` 强唯一约束保证幂等，禁止重复消费同一份文件。
-- **重试分级**：对大模型超时或网络闪断执行指数退避重试；对格式错误或破损文件立刻置为 `failed`，不浪费 Token。
-
-### 3.3 代码风格与命名契约
-- **Go 后端**：
-  - 导出标识符 `PascalCase`，内部私有 `camelCase`。
-  - 函数第一入参强制为 `ctx context.Context`。
-  - 错误处理严禁丢弃：必须使用 `fmt.Errorf("action description: %w", err)` 包装返回。
-  - 结构体 JSON 标签显式标注 `json:"snake_case"`。
-- **TypeScript / 前端**：
-  - 开启 TypeScript Strict Mode，严禁滥用 `any`。
-  - 共享数据类型必须在 `packages/types` 中维护与导出。
-  - 样式必须使用 Tailwind CSS，避免内联 CSS 或硬编码像素值。
+1. **阶段 1：对齐契约 (Align & Inspect)**
+   - 运行 `git status` 确认当前工作分支与改动上下文。
+   - 研读涉及模块对应的 `docs/*` 契约与 `harness/rules/*` 规则。
+2. **阶段 2：契约先行 (Contract First)**
+   - 涉及字段或接口变动，优先修改 `packages/types` 或 Go `domain` 结构体，而非直接扑向业务实现。
+3. **阶段 3：微创实现 (Surgical Diff)**
+   - 编写满足需求的最小代码，严禁不必要的抽象工厂或冗余样板代码。
+4. **阶段 4：执行质量门禁 (Quality Gate Enforcement)**
+   - 必须在终端运行第 5 节对应的验证命令，**检查退出码必须为 0**。
+   - 命令失败立即排查修复，严禁无视编译报错或类型告警。
+5. **阶段 5：客观透明交付 (Verifiable Report)**
+   - 向用户汇报：实际改动文件列表、门禁执行真实结果与遗留风险。禁止编造输出。
 
 ---
 
-## 4. 质量门禁与验证命令 (Quality Gates)
+## 5. 质量门禁与验证命令 (Quality Gates)
 
-在向用户报告任务完成前，Agent 必须在终端运行并通过以下质量门禁：
+在向用户汇报任务交付前，必须在终端执行并通过对应门禁（命令必须真实退出 0）：
 
-### 4.1 后端验证 (Go)
+### 5.1 前端门禁 (在仓库根目录执行)
+```bash
+# 1. 静态检查
+pnpm lint
+
+# 2. 全局 TypeScript 严格类型检查 (零报错)
+pnpm typecheck
+
+# 3. 构建编译检查
+pnpm build
+```
+
+### 5.2 后端门禁 (在 `backend/` 目录下执行)
 ```bash
 cd backend
-# 1. 静态检查与语法验证
+
+# 1. 静态语法与 Vet 检查
 go vet ./...
-# 2. 单元测试与集成测试
-go test -v -race ./...
-# 3. 编译验证
+
+# 2. 单元测试验证
+go test ./...
+
+# 3. API 与 Worker 编译验证
 go build -o /dev/null ./cmd/api
 go build -o /dev/null ./cmd/worker
 ```
 
-### 4.2 前端验证 (TypeScript / Monorepo)
-```bash
-# 在仓库根目录下执行
-# 1. 全局 TypeScript 类型检查 (零报错)
-pnpm -r exec tsc --noEmit
-# 2. 代码构建检查
-pnpm build
-```
-
 ---
 
-## 5. 多 Agent 协作规范 (Multi-Agent Protocol)
+## 6. 多 Agent 协作与 Git 安全规范
 
-- **Claude Code / Codex / ZCode 切换约定**：
-  - 进入仓库后，先运行 `git status` 确认当前工作分支与改动范围。
-  - 不得删除已落盘的规范文档 (`docs/*.md`)。
-  - 发现业务缺陷需修改架构设计时，必须同步更新 `docs/` 对应文档，保持代码与文档 100% 同步。
-  - 未经用户显式指令，严禁强制推送 (`git push -f`) 或提交未测试通过的代码。
+- **角色路由索引**：
+  - 前端开发：必读 `ui-enhance/SKILL.md` + `harness/rules/frontend.md`。
+  - 后端开发：必读 `docs/API.md` + `docs/SCHEMA.md` + `harness/rules/backend.md`。
+  - 架构决策：复杂架构调整在 `harness/knowledge/decisions/` 沉淀 ADR。
+- **Git 安全红线**：
+  - 严禁执行 `git push -f` 强推或破坏性覆盖操作。
+  - 提交信息必须遵循 Conventional Commits：`feat:`, `fix:`, `refactor:`, `chore:`, `docs:`。
+  - 绝对禁止提交任何 `.env` 文件、真实凭证、公私钥或候选人真实简历文件。

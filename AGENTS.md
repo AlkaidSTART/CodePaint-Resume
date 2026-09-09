@@ -10,8 +10,9 @@
 1. **用户当轮显式指令**
 2. **本文件 (AGENTS.md)**
 3. **`docs/*` 契约** (PRD / API / SCHEMA / ENV_MATRIX / ERROR_CODES / SECURITY / OBSERVABILITY / TDD)
-4. **现有代码实现模式**
-5. **Agent 默认偏好**（最低，严禁脑补）
+4. **`.skills/*` 领域规范**
+5. **现有代码实现模式**
+6. **Agent 默认偏好**（最低，严禁脑补）
 
 > 代码永不得反向覆盖 `docs/*` 契约。冲突以 docs 为准；需变更契约必须同步更新文档。
 

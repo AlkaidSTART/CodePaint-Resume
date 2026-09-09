@@ -1,0 +1,5 @@
+interface:
+  display_name: "拷问计划"
+  short_description: "把想法拿来一轮轮拷问打磨"
+policy:
+  allow_implicit_invocation: false

@@ -44,7 +44,23 @@
 
 ---
 
-## 3. 架构边界 (Blast-Radius Control)
+## 3. Skills 路由与加载规则
+
+项目级规范统一存放于 `.skills/`（本地优先，缺失回退 `~/.agents/skills/`）。**严禁全局常驻或全量预载**，仅当命中下列触发条件时按需读取：
+
+| 触发场景 | Skill | 相对路径 | 核心约束 |
+|---|---|---|---|
+| 新功能 / 架构改动 / 选型 / 重大重构 | `grilling` | `.skills/grilling/SKILL.md` | **强门禁**。大模型必须先发起质询对齐共识，确认后方可出 plan 或写代码；hotfix/微调跳过 |
+| 官网动效 / 全屏转场 / 滚动动画 | `gsap-suite` | `.skills/gsap-suite/SKILL.md` | 涉及 `apps/public-web`。Timeline 编排、ScrollTrigger 隔离、防内存泄漏、适配减弱动画 |
+| 界面设计 / UI 组件 / 视觉规范 | `frontend-design` | `.skills/frontend-design/SKILL.md` | 涉及 `apps/*` 与 `packages/ui`。暗色微质感、黑白冷灰筑基、品牌蓝点睛，严禁模板套话风 |
+| 数据库迁移 / SQL 调优 / 模式变更 | `supabase-postgres-best-practices` | `.skills/supabase-postgres-best-practices/SKILL.md` | 涉及 `migrations/*.sql` 与 pgxpool。强制租户隔离、索引验证、避免全表锁与大事务 |
+| 异步队列 / 缓存策略 / 分布式锁 | `redis-suite` | `.skills/redis-suite/SKILL.md` | 涉及 `backend/internal/task` (Asynq) 与 Redis。防 BigKey、TTL 治理、连接池与雪崩防护 |
+| 核心业务逻辑 / API Client / 鉴权 | `test-driven-development` | `.skills/test-driven-development/SKILL.md` | 对齐 `docs/TDD.md`。红-绿-重构循环，测试先行，测试红灯后才准写实现 |
+| 疑难 Bug / 门禁修复连续失败 ≥2 次 | `systematic-debugging` | `.skills/systematic-debugging/SKILL.md` | 4 阶段根因排查（对齐契约-定位根因-微创修复-门禁验证），严禁盲猜试错 |
+
+---
+
+## 4. 架构边界 (Blast-Radius Control)
 
 pnpm + Go 混合 Monorepo：
 
@@ -62,6 +78,7 @@ CodePaint-Resume/
 │   └── assets / utils  # 静态资源 / 工具函数
 ├── docs/               # 8 大权威契约
 ├── migrations/         # SQL 迁移脚本
+├── .skills/            # 项目级 Skills (按需加载，严禁滥载)
 └── .plans/             # 动态任务计划 (active/ + archive/)
 ```
 
@@ -77,7 +94,7 @@ CodePaint-Resume/
 
 ---
 
-## 4. 红线对照表
+## 5. 红线对照表
 
 | 领域 | ❌ FORBIDDEN | ✅ REQUIRED |
 |---|---|---|
@@ -93,7 +110,7 @@ CodePaint-Resume/
 
 ---
 
-## 5. 质量门禁 (exit 0 否则禁止宣称完成)
+## 6. 质量门禁 (exit 0 否则禁止宣称完成)
 
 ### 前端 (仓库根目录)
 ```bash
@@ -107,7 +124,7 @@ cd backend && go vet ./... && go test ./... && go build -o /dev/null ./cmd/api &
 
 ---
 
-## 6. Git 安全
+## 7. Git 安全
 
 - 严禁 `git push -f`
 - Conventional Commits：`feat:` / `fix:` / `refactor:` / `chore:` / `docs:`

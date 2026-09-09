@@ -1,130 +1,139 @@
-# CodePaint ResumeFlow — AI Agent & Developer Operating Guide (AGENTS.md)
+# CodePaint ResumeFlow — AGENTS.md
 
-> **适用范围**：Claude Code、OpenAI Codex、Hermes Agent、ZCode 及所有协作开发者  
-> **约束等级**：**最高强约束 (Non-negotiable Zero-Tolerance)**。任何 Agent 必须无条件遵循。  
-> **核心原则**：契约优先 (Spec-Driven)、最小改动 (Surgical Diff)、真实验证 (Verifiable Quality Gate)。
-
----
-
-## 1. 优先级阶梯 (Instruction Precedence)
-
-当指令、文档与代码发生冲突时，严格按以下层级裁决，高优先级无条件覆盖低优先级：
-
-1. **User Explicit Prompt**（用户当轮显式指令）
-2. **`AGENTS.md`**（本文件：仓库全局治理、安全红线、质量门禁）
-3. **`docs/*` 权威规范**（`PRD.md`、`API.md`、`SCHEMA.md`、`ENV_MATRIX.md` 等单一事实源）
-4. **`harness/rules/*` & `ui-enhance/SKILL.md`**（领域研发规范与 UI 设计规范）
-5. **现有代码实现模式**
-6. **Agent 默认偏好 / 模型假设**（最低优先级，严禁脑补）
-
-> **红线规则**：代码永不得反向覆盖 `docs/*` 契约。若发现代码与文档冲突，以 `docs/*` 为准；确需变更契约必须显式同步更新文档。
+> 适用：Claude Code、Codex、Hermes Agent 及所有协作开发者
+> 约束：最高强约束。Agent 必须无条件遵循。
 
 ---
 
-## 2. 架构与边界隔离红线 (Blast-Radius Control)
+## 1. 裁决优先级
 
-本仓库为 pnpm + Go 混合 Monorepo，严禁跨越以下架构红线：
+1. **用户当轮显式指令**
+2. **本文件 (AGENTS.md)**
+3. **`docs/*` 契约** (PRD / API / SCHEMA / ENV_MATRIX / ERROR_CODES / SECURITY / OBSERVABILITY / TDD)
+4. **现有代码实现模式**
+5. **Agent 默认偏好**（最低，严禁脑补）
 
-```text
+> 代码永不得反向覆盖 `docs/*` 契约。冲突以 docs 为准；需变更契约必须同步更新文档。
+
+---
+
+## 2. 项目 Skills (.skills/)
+
+```
+.skills/
+├── grilling/          # 决策质询 — 见下方强制规则
+├── frontend-design/   # 前端设计美学规范
+├── gsap-suite/        # GSAP 动画指南 (含 references/)
+└── redis-suite/       # Redis 架构与建模 (含 references/)
+```
+
+### Grilling 强制规则
+
+**任何新功能、架构变更、技术选型，大模型在输出 plan 或写代码之前，必须先执行 `.skills/grilling/SKILL.md` 的质询流程。** 质询完毕、用户确认共识后才能进入实现阶段。以下场景跳过质询：
+- hotfix / ≤3 文件 bug 修复
+- 纯样式微调
+- 文档更新
+
+### Skill 按需加载
+
+- 前端开发 → 读 `frontend-design/SKILL.md` + `gsap-suite/SKILL.md`
+- 后端涉及 Redis → 读 `redis-suite/SKILL.md` 及对应 references/
+- 不相关的 skill 不要加载，节省 context
+
+---
+
+## 3. 任务分级与 Plan 机制
+
+| 级别 | 条件 | 流程 |
+|---|---|---|
+| **直接执行** | hotfix / ≤3 文件 / 有明确报错 | 读本文件 → 改代码 → 跑门禁 → 交付 |
+| **需要 Plan** | 新功能 / 跨模块 / 模糊需求 | 大模型先写 `.plans/active/xxx.md` → 人工确认 → 小模型执行 → 门禁 → 归档到 `.plans/archive/` |
+
+### Plan 格式要求
+
+```markdown
+# <任务名>
+- **goal**: 一句话目标
+- **scope**: [文件/目录列表] (用于并行隔离检查)
+- **steps**: 实现步骤 (每步 ≤1 个关注点)
+- **verify**: 验证命令
+- **risk**: 可能影响的其他模块
+```
+
+### 并行隔离
+
+- Plan 必须声明 scope
+- 两个 plan scope 有交集 → 人工 review 后才能并行
+- 门禁全局统一，每个分支 push 前必须全量跑
+
+---
+
+## 4. 架构边界 (Blast-Radius Control)
+
+pnpm + Go 混合 Monorepo：
+
+```
 CodePaint-Resume/
 ├── apps/
-│   ├── public-web      # 候选人端：招新展示、在线报名、状态查询 (React + Vite)
-│   └── admin-web       # 招聘官端：候选人看板、简历详情、解析重试 (React + Vite)
-├── backend/            # 后端核心单体 (Go 1.22+ / Gin / Asynq / pgxpool / Postgres / Redis)
+│   ├── public-web      # 候选人端 (React + Vite)
+│   └── admin-web       # 招聘官端 (React + Vite)
+├── backend/            # Go 单体 (Gin / Asynq / pgxpool / Postgres / Redis)
 ├── packages/
-│   ├── types           # 全局 TS 类型唯一定义源 (@codepaint/types)
-│   ├── api-client      # 统一 API 客户端 (@codepaint/api-client)
-│   ├── auth-client     # 统一鉴权工具库 (@codepaint/auth-client)
-│   └── ui              # 跨应用共享纯基础 UI (@codepaint/ui)
-├── docs/               # 8 大权威事实源 (PRD/API/SCHEMA/ENV_MATRIX/ERROR_CODES/SECURITY/OBSERVABILITY/TDD)
-├── harness/            # 研发流程引擎 (checklists, rules, workflows, knowledge)
-└── ui-enhance/         # UI 设计专属规范 (SKILL.md)
+│   ├── types           # TS 类型唯一定义源 (@codepaint/types)
+│   ├── api-client      # 统一 API 客户端
+│   ├── auth-client     # 统一鉴权工具库
+│   ├── ui              # 共享基础 UI
+│   └── assets / utils  # 静态资源 / 工具函数
+├── docs/               # 8 大权威契约
+├── migrations/         # SQL 迁移脚本
+└── .plans/             # 动态任务计划 (active/ + archive/)
 ```
 
-- **双前端绝对物理隔离**：`public-web` 与 `admin-web` 严禁互相引用，严禁共享业务 Layout、页面路由及私有状态。
-- **类型单一事实源**：所有跨模块业务数据模型必须在 `packages/types` 中定义并导出。**严禁在前端组件内擅自定义 ad-hoc 接口**。
-- **后端单向依赖分层**：`cmd/` → `internal/httpserver` & `internal/task` → `internal/service` → `internal/repository` → `internal/domain`。`domain` 严禁反向依赖外层。
-- **保护性只读清单（未经显式要求严禁擅改）**：
-  - `docs/*.md` 契约文件
-  - 已生效的历史迁移脚本 `backend/internal/migrations/*.go` / `migrations/*.sql`
-  - 依赖锁文件 `pnpm-lock.yaml`、`backend/go.sum`（仅允许包管理工具自动更新，严禁人工/Agent 手写编辑）
+**隔离红线**：
+- `public-web` ↔ `admin-web` 严禁互相引用（业务 Layout、路由、私有状态）
+- 跨模块类型必须定义在 `packages/types`，严禁组件内 ad-hoc interface
+- 后端单向依赖：`cmd/` → `httpserver` & `task` → `service` → `repository` → `domain`。domain 严禁反向依赖
+
+**只读保护**（未经显式要求严禁擅改）：
+- `docs/*.md`
+- `migrations/*.sql`、`backend/internal/migrations/*.go`
+- `pnpm-lock.yaml`、`backend/go.sum`（仅包管理工具更新）
 
 ---
 
-## 3. 不可逾越的八大生产级军规 (Ironclad Rules)
+## 5. 红线对照表
 
-| 领域 | ❌ 严禁行为 (FORBIDDEN - 审查即拒绝) | ✅ 合规标准 (REQUIRED PATTERN) |
+| 领域 | ❌ FORBIDDEN | ✅ REQUIRED |
 |---|---|---|
-| **多租户隔离** | 业务查询裸写 `WHERE id = $1` | 所有租户数据查询强制绑定 `WHERE id = $1 AND workspace_id = $2` |
-| **异步解析** | HTTP 请求中同步执行 PDF 抽取或 LLM 解析 | 仅写库并投递 Asynq 任务，HTTP 接口在 200ms 内响应 `202 Accepted` |
-| **简历与材料防护** | 将原始简历存放在静态公开目录或暴露直接外链 | 存入私有 Bucket，下载/预览仅分发有效期 ≤ 15 分钟的 Presigned URL |
-| **环境变量管理** | 在代码中随意使用未经登记的环境变量 | 任何环境变量必须已在 `docs/ENV_MATRIX.md` 中注册，严禁擅自发明 |
-| **凭证与敏感数据** | 明文存储邮箱授权码/Webhook Secret；日志打印 PII | 必须使用 AES-256-GCM 密文存储（字段名带 `_encrypted`），日志严格脱敏 |
-| **代码与错误控制** | TS 滥用 `any`；Go 忽略错误 (`_ = err`) 或裸抛 panic | 开启 TS Strict Mode；Go 必须使用 `fmt.Errorf("action: %w", err)` 包装链路 |
-| **UI 与视觉规范** | 随手写内联 CSS、大面积炫目渐变、金色系堆砌 | 严格遵照 `ui-enhance/SKILL.md`，黑白冷灰筑基，品牌蓝点睛，GSAP 流畅微交互 |
-| **改动膨胀 (YAGNI)**| 借修复之名重构无关模块、随意新增三方依赖 | 手术刀式精准修改；优先利用语言标准库与已有依赖；无关文件零修改 |
+| 多租户 | `WHERE id = $1` | `WHERE id = $1 AND workspace_id = $2` |
+| 异步解析 | HTTP 同步执行 PDF/LLM 解析 | 投递 Asynq 任务，200ms 内返回 `202 Accepted` |
+| 简历防护 | 静态公开目录或直链 | 私有 Bucket + Presigned URL ≤15min |
+| 环境变量 | 未在 `docs/ENV_MATRIX.md` 登记 | 先登记再使用 |
+| 凭证安全 | 明文存储授权码/Secret；日志打印 PII | AES-256-GCM 密文 (`_encrypted`)；日志脱敏 |
+| TS 类型 | `any` | Strict Mode，显式类型 |
+| Go 错误 | `_ = err` 或裸 panic | `fmt.Errorf("action: %w", err)` 包装 |
+| UI 视觉 | 内联 CSS、金色系堆砌 | 黑白冷灰筑基，品牌蓝点睛，GSAP 微交互 |
+| YAGNI | 借修复之名重构无关模块 | 手术刀改动；标准库 & 已有依赖优先 |
 
 ---
 
-## 4. 确定性研发工作流 (5-Phase Execution Loop)
+## 6. 质量门禁 (exit 0 否则禁止宣称完成)
 
-Agent 承接任务必须按阶段推进，严禁未经验证提前宣称完成：
-
-1. **阶段 1：对齐契约 (Align & Inspect)**
-   - 运行 `git status` 确认当前工作分支与改动上下文。
-   - 研读涉及模块对应的 `docs/*` 契约与 `harness/rules/*` 规则。
-2. **阶段 2：契约先行 (Contract First)**
-   - 涉及字段或接口变动，优先修改 `packages/types` 或 Go `domain` 结构体，而非直接扑向业务实现。
-3. **阶段 3：微创实现 (Surgical Diff)**
-   - 编写满足需求的最小代码，严禁不必要的抽象工厂或冗余样板代码。
-4. **阶段 4：执行质量门禁 (Quality Gate Enforcement)**
-   - 必须在终端运行第 5 节对应的验证命令，**检查退出码必须为 0**。
-   - 命令失败立即排查修复，严禁无视编译报错或类型告警。
-5. **阶段 5：客观透明交付 (Verifiable Report)**
-   - 向用户汇报：实际改动文件列表、门禁执行真实结果与遗留风险。禁止编造输出。
-
----
-
-## 5. 质量门禁与验证命令 (Quality Gates)
-
-在向用户汇报任务交付前，必须在终端执行并通过对应门禁（命令必须真实退出 0）：
-
-### 5.1 前端门禁 (在仓库根目录执行)
+### 前端 (仓库根目录)
 ```bash
-# 1. 静态检查
-pnpm lint
-
-# 2. 全局 TypeScript 严格类型检查 (零报错)
-pnpm typecheck
-
-# 3. 构建编译检查
-pnpm build
+pnpm lint && pnpm typecheck && pnpm build
 ```
 
-### 5.2 后端门禁 (在 `backend/` 目录下执行)
+### 后端 (backend/)
 ```bash
-cd backend
-
-# 1. 静态语法与 Vet 检查
-go vet ./...
-
-# 2. 单元测试验证
-go test ./...
-
-# 3. API 与 Worker 编译验证
-go build -o /dev/null ./cmd/api
-go build -o /dev/null ./cmd/worker
+cd backend && go vet ./... && go test ./... && go build -o /dev/null ./cmd/api && go build -o /dev/null ./cmd/worker
 ```
 
 ---
 
-## 6. 多 Agent 协作与 Git 安全规范
+## 7. Git 安全
 
-- **角色路由索引**：
-  - 前端开发：必读 `ui-enhance/SKILL.md` + `harness/rules/frontend.md`。
-  - 后端开发：必读 `docs/API.md` + `docs/SCHEMA.md` + `harness/rules/backend.md`。
-  - 架构决策：复杂架构调整在 `harness/knowledge/decisions/` 沉淀 ADR。
-- **Git 安全红线**：
-  - 严禁执行 `git push -f` 强推或破坏性覆盖操作。
-  - 提交信息必须遵循 Conventional Commits：`feat:`, `fix:`, `refactor:`, `chore:`, `docs:`。
-  - 绝对禁止提交任何 `.env` 文件、真实凭证、公私钥或候选人真实简历文件。
+- 严禁 `git push -f`
+- Conventional Commits：`feat:` / `fix:` / `refactor:` / `chore:` / `docs:`
+- 绝对禁止提交 `.env`、凭证、私钥、候选人真实简历
+- 涉及接口或字段变动：先改 `packages/types` 或 Go `domain`，再改业务代码

@@ -17,32 +17,7 @@
 
 ---
 
-## 2. 项目 Skills (.skills/)
-
-```
-.skills/
-├── grilling/          # 决策质询 — 见下方强制规则
-├── frontend-design/   # 前端设计美学规范
-├── gsap-suite/        # GSAP 动画指南 (含 references/)
-└── redis-suite/       # Redis 架构与建模 (含 references/)
-```
-
-### Grilling 强制规则
-
-**任何新功能、架构变更、技术选型，大模型在输出 plan 或写代码之前，必须先执行 `.skills/grilling/SKILL.md` 的质询流程。** 质询完毕、用户确认共识后才能进入实现阶段。以下场景跳过质询：
-- hotfix / ≤3 文件 bug 修复
-- 纯样式微调
-- 文档更新
-
-### Skill 按需加载
-
-- 前端开发 → 读 `frontend-design/SKILL.md` + `gsap-suite/SKILL.md`
-- 后端涉及 Redis → 读 `redis-suite/SKILL.md` 及对应 references/
-- 不相关的 skill 不要加载，节省 context
-
----
-
-## 3. 任务分级与 Plan 机制
+## 2. 任务分级与 Plan 机制
 
 | 级别 | 条件 | 流程 |
 |---|---|---|
@@ -68,7 +43,7 @@
 
 ---
 
-## 4. 架构边界 (Blast-Radius Control)
+## 3. 架构边界 (Blast-Radius Control)
 
 pnpm + Go 混合 Monorepo：
 
@@ -101,7 +76,7 @@ CodePaint-Resume/
 
 ---
 
-## 5. 红线对照表
+## 4. 红线对照表
 
 | 领域 | ❌ FORBIDDEN | ✅ REQUIRED |
 |---|---|---|
@@ -117,7 +92,7 @@ CodePaint-Resume/
 
 ---
 
-## 6. 质量门禁 (exit 0 否则禁止宣称完成)
+## 5. 质量门禁 (exit 0 否则禁止宣称完成)
 
 ### 前端 (仓库根目录)
 ```bash
@@ -131,7 +106,7 @@ cd backend && go vet ./... && go test ./... && go build -o /dev/null ./cmd/api &
 
 ---
 
-## 7. Git 安全
+## 6. Git 安全
 
 - 严禁 `git push -f`
 - Conventional Commits：`feat:` / `fix:` / `refactor:` / `chore:` / `docs:`

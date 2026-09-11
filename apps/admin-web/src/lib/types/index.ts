@@ -16,9 +16,9 @@ export interface RecruitmentRole {
   slug: string;
   name: string;
   shortName: string;
-  description: string;
-  accent: string;
-  details: string[];
+  description?: string;
+  accent?: string;
+  details?: string[];
 }
 
 export interface Application {

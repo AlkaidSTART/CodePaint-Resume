@@ -1,24 +1,188 @@
 @import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+@import "@fontsource-variable/geist";
 
-@theme {
-  --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
-  --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+@custom-variant dark (&:is(.dark *));
+
+/*
+ * CodePaint Admin — Design tokens (see docs/UI_DESIGN.md §3)
+ * Only token definitions live here. All component styling uses Tailwind
+ * utility classes in JSX; no hand-written component CSS.
+ */
+:root {
+  /* Workspace palette */
+  --workspace: #f5f7f7;
+  --surface: #ffffff;
+  --ink: #17212b;
+  --muted-ink: #66727f;
+  --subtle-ink: #8a95a1;
+  --line: #dfe5e8;
+  --brand: #0f7186;
+  --brand-strong: #0a596a;
+  --brand-soft: #e9f5f7;
+
+  /* Semantic state colors */
+  --state-pending: #b45309;
+  --state-pending-soft: #fffbeb;
+  --state-pending-line: #fde68a;
+  --state-running: #0e7490;
+  --state-running-soft: #ecfeff;
+  --state-running-line: #a5f3fc;
+  --state-done: #047857;
+  --state-done-soft: #ecfdf5;
+  --state-done-line: #a7f3d0;
+  --state-error: #be123c;
+  --state-error-soft: #fff1f2;
+  --state-error-line: #fecdd3;
+
+  /* shadcn/ui contract */
+  --background: var(--surface);
+  --foreground: var(--ink);
+  --card: var(--surface);
+  --card-foreground: var(--ink);
+  --popover: var(--surface);
+  --popover-foreground: var(--ink);
+  --primary: var(--ink);
+  --primary-foreground: #fbfcfc;
+  --secondary: var(--brand-soft);
+  --secondary-foreground: var(--brand-strong);
+  --muted: #f1f4f5;
+  --muted-foreground: var(--muted-ink);
+  --accent: var(--brand-soft);
+  --accent-foreground: var(--brand-strong);
+  --destructive: var(--state-error);
+  --border: var(--line);
+  --input: var(--line);
+  --ring: var(--brand);
+  --chart-1: #0f7186;
+  --chart-2: #0e7490;
+  --chart-3: #047857;
+  --chart-4: #b45309;
+  --chart-5: #be123c;
+  --radius: 0.5rem;
+  --sidebar: var(--surface);
+  --sidebar-foreground: var(--ink);
+  --sidebar-primary: var(--brand);
+  --sidebar-primary-foreground: #fbfcfc;
+  --sidebar-accent: var(--brand-soft);
+  --sidebar-accent-foreground: var(--brand-strong);
+  --sidebar-border: var(--line);
+  --sidebar-ring: var(--brand);
+}
+
+@theme inline {
+  --font-sans: "Geist Variable", "PingFang SC", "Hiragino Sans GB",
+    "Microsoft YaHei", ui-sans-serif, system-ui, sans-serif;
+  --font-heading: var(--font-sans);
+  --font-mono: "Geist Mono Variable", "SFMono-Regular", "JetBrains Mono",
+    Consolas, "Liberation Mono", monospace;
+
+  /* Workspace + brand tokens exposed as Tailwind utilities */
+  --color-workspace: var(--workspace);
+  --color-surface: var(--surface);
+  --color-ink: var(--ink);
+  --color-subtle: var(--subtle-ink);
+  --color-line: var(--line);
+  --color-brand: var(--brand);
+  --color-brand-strong: var(--brand-strong);
+  --color-brand-soft: var(--brand-soft);
+  --color-state-pending: var(--state-pending);
+  --color-state-pending-soft: var(--state-pending-soft);
+  --color-state-pending-line: var(--state-pending-line);
+  --color-state-running: var(--state-running);
+  --color-state-running-soft: var(--state-running-soft);
+  --color-state-running-line: var(--state-running-line);
+  --color-state-done: var(--state-done);
+  --color-state-done-soft: var(--state-done-soft);
+  --color-state-done-line: var(--state-done-line);
+  --color-state-error: var(--state-error);
+  --color-state-error-soft: var(--state-error-soft);
+  --color-state-error-line: var(--state-error-line);
+
+  /* shadcn/ui contract */
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+
+  --radius-sm: calc(var(--radius) * 0.6);
+  --radius-md: calc(var(--radius) * 0.8);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) * 1.4);
+  --radius-2xl: calc(var(--radius) * 1.8);
+  --radius-3xl: calc(var(--radius) * 2.2);
+  --radius-4xl: calc(var(--radius) * 2.6);
 }
 
 @layer base {
-  html {
-    background-color: #000000;
-  }
-  body {
-    margin: 0;
-    background-color: #000000;
-    color: #e2e8f0;
-    font-family: var(--font-sans);
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
-    color-scheme: dark;
-  }
   * {
     box-sizing: border-box;
+    @apply border-border outline-ring/50;
+  }
+
+  html {
+    background-color: var(--color-workspace);
+    color-scheme: light;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    @apply font-sans;
+  }
+
+  body {
+    margin: 0;
+    background-color: var(--color-workspace);
+    color: var(--color-ink);
+    @apply font-sans text-sm leading-relaxed;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4 {
+    @apply font-heading text-balance;
+  }
+
+  button,
+  a {
+    -webkit-tap-highlight-color: transparent;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
   }
 }

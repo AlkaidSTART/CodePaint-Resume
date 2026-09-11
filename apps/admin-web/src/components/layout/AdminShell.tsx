@@ -66,31 +66,23 @@ function ProductBrand({ isCollapsed }: { isCollapsed: boolean }) {
     <Link
       to="/workspace/dashboard"
       className={cn(
-        "group flex items-center rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring transition-all duration-200",
-        isCollapsed ? "justify-center" : "gap-3"
+        "group flex items-center rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring transition-colors",
+        isCollapsed ? "justify-center" : "gap-2.5"
       )}
       aria-label="CodePaint 招新管理控制台"
     >
       <img
         src="/logo.png"
         alt="CodePaint Studio Logo"
-        className="size-8 shrink-0 rounded-lg object-contain shadow-xs transition-transform duration-200 group-hover:scale-105 active:scale-95"
+        className="size-7 shrink-0 rounded-md object-contain"
       />
       {!isCollapsed && (
-        <div className="min-w-0 transition-opacity duration-200">
-          <div className="flex items-center gap-1.5">
-            <span className="font-mono text-xs font-bold tracking-[0.2em] text-foreground">
-              CODEPAINT
-            </span>
-            <Badge
-              variant="outline"
-              className="border-border/60 bg-muted/30 px-1 py-0 text-[9px] font-mono text-muted-foreground"
-            >
-              PRO
-            </Badge>
-          </div>
-          <span className="block truncate text-[11px] font-medium text-muted-foreground">
-            招新与评审控制台
+        <div className="min-w-0">
+          <span className="block font-mono text-xs font-semibold tracking-wider text-foreground">
+            CODEPAINT
+          </span>
+          <span className="block truncate text-[11px] text-muted-foreground">
+            招新评审控制台
           </span>
         </div>
       )}
@@ -240,13 +232,13 @@ function SidebarNav({
   return (
     <nav
       className={cn(
-        "flex-1 space-y-5 py-4 overflow-y-auto transition-all duration-200",
+        "flex-1 space-y-5 py-3 overflow-y-auto transition-all duration-200",
         isCollapsed ? "px-2" : "px-3"
       )}
       aria-label="侧边栏主导航"
     >
-      {renderNavGroup("核心工作台 / CORE", coreItems)}
-      {renderNavGroup("系统与流水线 / PIPELINE", systemItems)}
+      {renderNavGroup("工作台", coreItems)}
+      {renderNavGroup("流水线与系统", systemItems)}
     </nav>
   );
 }
@@ -544,20 +536,53 @@ export function AdminShell({
 
           {/* Desktop Notifications Popover */}
           {notificationOpen && (
-            <div className="absolute right-6 top-11 z-40 w-80 rounded-xl border border-border bg-card p-4 shadow-xl">
-              <div className="flex items-center justify-between pb-2 border-b">
-                <span className="text-xs font-semibold">通知中心</span>
-                <Badge variant="secondary" className="text-[10px]">
-                  3 条新动态
-                </Badge>
+            <div
+              role="dialog"
+              aria-label="通知中心"
+              className="absolute right-6 top-11 z-40 w-84 rounded-lg border border-border/80 bg-card p-4 shadow-md"
+            >
+              <div className="flex items-center justify-between border-b border-border/70 pb-2.5">
+                <div className="flex items-center gap-2">
+                  <span className="text-xs font-semibold text-foreground">系统动态</span>
+                  <span className="font-mono text-[11px] text-muted-foreground">3 条未读</span>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setNotificationOpen(false)}
+                  className="rounded p-0.5 text-xs text-muted-foreground hover:text-foreground"
+                  aria-label="关闭通知面板"
+                >
+                  ✕
+                </button>
               </div>
-              <div className="mt-3 space-y-2 text-xs text-muted-foreground">
-                <p className="rounded-lg border-l-2 border-emerald-500 bg-muted/30 p-2">
-                  林思齐的「前端开发工程」初审任务已被评审员认领。
-                </p>
-                <p className="rounded-lg border-l-2 border-amber-500 bg-muted/30 p-2">
-                  有 1 份 PDF 作品集解析异常，需手动触发重新抽取。
-                </p>
+              <ul className="mt-2.5 space-y-2 text-xs">
+                <li className="rounded border-l-2 border-emerald-600 bg-muted/40 p-2.5">
+                  <p className="font-medium text-foreground">初审认领</p>
+                  <p className="mt-0.5 text-muted-foreground">
+                    林思齐的「前端开发工程」初审已被评审员认领。
+                  </p>
+                </li>
+                <li className="rounded border-l-2 border-amber-600 bg-muted/40 p-2.5">
+                  <p className="font-medium text-foreground">解析异常提示</p>
+                  <p className="mt-0.5 text-muted-foreground">
+                    1 份 PDF 作品集解析超时，需在异步队列中手动重试。
+                  </p>
+                </li>
+                <li className="rounded border-l-2 border-border bg-muted/20 p-2.5">
+                  <p className="font-medium text-foreground">岗位配额变动</p>
+                  <p className="mt-0.5 text-muted-foreground">
+                    大前端项目组投递已达 18 份，接近设定配额警戒线。
+                  </p>
+                </li>
+              </ul>
+              <div className="mt-3 border-t border-border/60 pt-2 text-right">
+                <button
+                  type="button"
+                  onClick={() => setNotificationOpen(false)}
+                  className="text-xs text-muted-foreground hover:text-foreground"
+                >
+                  全部标为已读
+                </button>
               </div>
             </div>
           )}

@@ -249,9 +249,7 @@ function ApplicantRowItem({
         <div ref={detailRef} className="overflow-hidden border-t border-border/40 bg-muted/15 px-4 py-4 sm:pl-16">
           <div className="grid gap-4 sm:grid-cols-[minmax(0,1fr)_auto]">
             <div>
-              <p className="font-mono text-[10px] uppercase tracking-wider text-muted-foreground">
-                RESUME SUMMARY / 结构化摘要
-              </p>
+              <p className="text-xs font-semibold text-foreground">简历提要</p>
               <p className="mt-1.5 text-xs leading-relaxed text-foreground/90">
                 {application.summary}
               </p>
@@ -259,7 +257,7 @@ function ApplicantRowItem({
               {application.skills && application.skills.length > 0 && (
                 <div className="mt-3 flex flex-wrap gap-1.5">
                   {application.skills.map((skill) => (
-                    <Badge key={skill} variant="secondary" className="px-2 py-0.5 text-[10px]">
+                    <Badge key={skill} variant="secondary" className="px-1.5 py-0.5 text-[10px]">
                       {skill}
                     </Badge>
                   ))}
@@ -518,16 +516,13 @@ export function DashboardView({
   return (
     <div ref={containerRef} className="space-y-6">
       {/* Page Header */}
-      <header className="dashboard-header flex flex-col justify-between gap-4 border-b border-border/80 pb-6 sm:flex-row sm:items-end">
+      <header className="dashboard-header flex flex-col justify-between gap-4 border-b border-border/80 pb-5 sm:flex-row sm:items-end">
         <div>
-          <div className="font-mono text-[11px] uppercase tracking-wider text-muted-foreground">
-            <span>2026 AUTUMN CYCLE · RECRUITMENT OPERATIONS</span>
-          </div>
-          <h1 className="mt-2 text-2xl font-bold tracking-tight text-foreground sm:text-3xl">
-            招新概览与流转控制台
+          <h1 className="text-2xl font-bold tracking-tight text-foreground sm:text-3xl">
+            招新概览看板
           </h1>
           <p className="mt-1 text-xs text-muted-foreground sm:text-sm">
-            监控实时投递流动、AI 结构化解析管线健康度与各组初筛进度
+            2026 秋季招募周期 · 实时监控投递流动、AI 结构化解析管线健康度与各组初筛进度
           </p>
         </div>
 

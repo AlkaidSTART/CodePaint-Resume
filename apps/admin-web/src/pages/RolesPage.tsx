@@ -3,6 +3,7 @@ import gsap from "gsap";
 import { useGSAP } from "@gsap/react";
 import {
   BriefcaseBusiness,
+  Check,
   Edit2,
   Plus,
   Users,
@@ -16,6 +17,15 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import {
+  Dialog,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 
 gsap.registerPlugin(useGSAP);
 
@@ -76,6 +86,16 @@ const INITIAL_ROLES: RoleItem[] = [
 export function RolesPage() {
   const containerRef = useRef<HTMLDivElement>(null);
   const [roles, setRoles] = useState<RoleItem[]>(INITIAL_ROLES);
+  const [isCreateOpen, setIsCreateOpen] = useState(false);
+  const [editingRole, setEditingRole] = useState<RoleItem | null>(null);
+  const [feedback, setFeedback] = useState<string | null>(null);
+
+  // Form state
+  const [formName, setFormName] = useState("");
+  const [formSlug, setFormSlug] = useState("");
+  const [formCapacity, setFormCapacity] = useState("5");
+  const [formDesc, setFormDesc] = useState("");
+  const [formTags, setFormTags] = useState("");
 
   useGSAP(
     () => {
@@ -103,32 +123,102 @@ export function RolesPage() {
     );
   };
 
+  const handleOpenCreate = () => {
+    setEditingRole(null);
+    setFormName("");
+    setFormSlug("");
+    setFormCapacity("5");
+    setFormDesc("");
+    setFormTags("");
+    setIsCreateOpen(true);
+  };
+
+  const handleOpenEdit = (role: RoleItem) => {
+    setEditingRole(role);
+    setFormName(role.name);
+    setFormSlug(role.slug);
+    setFormCapacity(String(role.capacity));
+    setFormDesc(role.description);
+    setFormTags(role.tags.join(" "));
+    setIsCreateOpen(true);
+  };
+
+  const handleSaveRole = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!formName.trim()) return;
+
+    if (editingRole) {
+      setRoles((prev) =>
+        prev.map((r) =>
+          r.id === editingRole.id
+            ? {
+                ...r,
+                name: formName.trim(),
+                slug: formSlug.trim() || r.slug,
+                capacity: Number(formCapacity) || r.capacity,
+                description: formDesc.trim(),
+                tags: formTags.split(/[,， ]+/).filter(Boolean),
+              }
+            : r
+        )
+      );
+      setFeedback(`已更新岗位「${formName}」配置`);
+    } else {
+      const newRole: RoleItem = {
+        id: `r-${Date.now()}`,
+        name: formName.trim(),
+        slug: formSlug.trim() || `role-${roles.length + 1}`,
+        count: 0,
+        capacity: Number(formCapacity) || 4,
+        description: formDesc.trim() || "暂无岗位描述",
+        tags: formTags.split(/[,， ]+/).filter(Boolean),
+        status: "open",
+      };
+      setRoles((prev) => [...prev, newRole]);
+      setFeedback(`已发布新岗位「${newRole.name}」`);
+    }
+
+    setIsCreateOpen(false);
+    setTimeout(() => setFeedback(null), 3000);
+  };
+
   return (
     <div ref={containerRef} className="space-y-6">
-      <div className="anim-roles-header flex flex-col justify-between gap-4 border-b border-border/80 pb-6 sm:flex-row sm:items-center">
+      <div className="anim-roles-header flex flex-col justify-between gap-4 border-b border-border/80 pb-5 sm:flex-row sm:items-center">
         <div>
-          <div className="font-mono text-[11px] uppercase tracking-wider text-muted-foreground">
-            <span>RECRUITMENT POSITIONS</span>
-          </div>
-          <h1 className="mt-1 text-2xl font-bold tracking-tight text-foreground sm:text-3xl">
+          <h1 className="text-2xl font-bold tracking-tight text-foreground sm:text-3xl">
             招募岗位管理
           </h1>
           <p className="mt-1 text-xs text-muted-foreground sm:text-sm">
             维护各项目组招募名额、JD 描述与录取流转配额
           </p>
         </div>
-        <Button size="sm" className="gap-1.5 text-xs font-medium">
+        <Button
+          size="sm"
+          onPress={handleOpenCreate}
+          className="gap-1.5 text-xs font-medium"
+        >
           <Plus className="size-3.5" />
           发布新岗位
         </Button>
       </div>
 
+      {feedback && (
+        <div
+          role="status"
+          className="rounded-md border border-emerald-500/30 bg-emerald-500/10 p-3 text-xs font-medium text-emerald-800 dark:text-emerald-300"
+        >
+          {feedback}
+        </div>
+      )}
+
       <div className="grid gap-5 sm:grid-cols-2">
         {roles.map((r) => {
+          const ratio = r.count > 0 ? (r.capacity / r.count) * 100 : 100;
           return (
             <Card
               key={r.id}
-              className="anim-role-card flex flex-col justify-between border shadow-sm transition-all hover:shadow"
+              className="anim-role-card flex flex-col justify-between border shadow-xs"
             >
               <CardHeader className="p-5 pb-3 border-b">
                 <div className="flex items-start justify-between gap-3">
@@ -156,14 +246,32 @@ export function RolesPage() {
                   ))}
                 </div>
 
-                <div className="flex items-center justify-between rounded-lg border border-border/60 bg-muted/20 p-3">
-                  <div className="flex items-center gap-2 text-muted-foreground">
-                    <Users className="size-4 text-cyan-600" />
-                    <span>投递报名：<strong className="font-mono font-semibold text-foreground">{r.count}</strong> 份</span>
+                <div className="space-y-2 rounded-md border border-border/60 bg-muted/20 p-3">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-1.5 text-muted-foreground">
+                      <Users className="size-3.5 text-cyan-600" />
+                      <span>投递报名：<strong className="font-mono font-semibold text-foreground">{r.count}</strong> 份</span>
+                    </div>
+                    <div className="flex items-center gap-1.5 text-muted-foreground">
+                      <BriefcaseBusiness className="size-3.5 text-emerald-600" />
+                      <span>计划名额：<strong className="font-mono font-semibold text-foreground">{r.capacity}</strong> 位</span>
+                    </div>
                   </div>
-                  <div className="flex items-center gap-2 text-muted-foreground">
-                    <BriefcaseBusiness className="size-4 text-emerald-600" />
-                    <span>录取名额：<strong className="font-mono font-semibold text-foreground">{r.capacity}</strong> 位</span>
+
+                  {/* Progress ratio */}
+                  <div className="pt-1">
+                    <div className="flex justify-between text-[11px] text-muted-foreground mb-1">
+                      <span>名额预估录取率</span>
+                      <span className="font-mono font-semibold text-foreground">
+                        {ratio >= 100 ? "充裕" : `${ratio.toFixed(0)}%`}
+                      </span>
+                    </div>
+                    <div className="h-1.5 w-full bg-muted rounded-full overflow-hidden">
+                      <div
+                        className="h-full bg-primary"
+                        style={{ width: `${Math.min(100, ratio)}%` }}
+                      />
+                    </div>
                   </div>
                 </div>
               </CardContent>
@@ -177,7 +285,12 @@ export function RolesPage() {
                 >
                   {r.status === "open" ? "暂停招募" : "恢复开放"}
                 </Button>
-                <Button variant="outline" size="xs" className="gap-1 text-xs">
+                <Button
+                  variant="outline"
+                  size="xs"
+                  onPress={() => handleOpenEdit(r)}
+                  className="gap-1 text-xs"
+                >
                   <Edit2 className="size-3" />
                   修改岗位 JD
                 </Button>
@@ -186,6 +299,97 @@ export function RolesPage() {
           );
         })}
       </div>
+
+      {/* Role Add/Edit Dialog */}
+      <Dialog isOpen={isCreateOpen} onOpenChange={setIsCreateOpen} className="sm:max-w-md">
+        <DialogHeader>
+          <DialogTitle className="text-base font-bold">
+            {editingRole ? `编辑岗位: ${editingRole.name}` : "发布新招募岗位"}
+          </DialogTitle>
+          <DialogDescription className="text-xs text-muted-foreground">
+            设置岗位职责需求、技能标签与招募名额规划
+          </DialogDescription>
+        </DialogHeader>
+
+        <form onSubmit={handleSaveRole} className="mt-2 space-y-4">
+          <div className="space-y-3.5 text-xs">
+            <div className="space-y-1">
+              <Label htmlFor="role-name" className="text-xs">岗位名称 *</Label>
+              <Input
+                id="role-name"
+                placeholder="例如: 移动端开发项目组"
+                value={formName}
+                onChange={(e) => setFormName(e.target.value)}
+                required
+                className="text-xs"
+              />
+            </div>
+
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-1">
+                <Label htmlFor="role-slug" className="text-xs">岗位标识 (Slug)</Label>
+                <Input
+                  id="role-slug"
+                  placeholder="mobile"
+                  value={formSlug}
+                  onChange={(e) => setFormSlug(e.target.value)}
+                  className="text-xs font-mono"
+                />
+              </div>
+              <div className="space-y-1">
+                <Label htmlFor="role-capacity" className="text-xs">招募录取名额</Label>
+                <Input
+                  id="role-capacity"
+                  type="number"
+                  min="1"
+                  value={formCapacity}
+                  onChange={(e) => setFormCapacity(e.target.value)}
+                  className="text-xs font-mono"
+                />
+              </div>
+            </div>
+
+            <div className="space-y-1">
+              <Label htmlFor="role-tags" className="text-xs">技能标签 (空格或逗号分隔)</Label>
+              <Input
+                id="role-tags"
+                placeholder="例如: Flutter iOS Android"
+                value={formTags}
+                onChange={(e) => setFormTags(e.target.value)}
+                className="text-xs"
+              />
+            </div>
+
+            <div className="space-y-1">
+              <Label htmlFor="role-desc" className="text-xs">岗位描述 (JD)</Label>
+              <textarea
+                id="role-desc"
+                rows={3}
+                placeholder="说明岗位职责、考核内容与面向学生要求..."
+                value={formDesc}
+                onChange={(e) => setFormDesc(e.target.value)}
+                className="w-full rounded-md border border-input bg-background p-2.5 text-xs focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              />
+            </div>
+          </div>
+
+          <DialogFooter className="flex items-center justify-end gap-2 border-t pt-3">
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onPress={() => setIsCreateOpen(false)}
+              className="text-xs"
+            >
+              取消
+            </Button>
+            <Button type="submit" size="sm" className="gap-1.5 text-xs font-medium">
+              <Check className="size-3.5" />
+              保存
+            </Button>
+          </DialogFooter>
+        </form>
+      </Dialog>
     </div>
   );
 }

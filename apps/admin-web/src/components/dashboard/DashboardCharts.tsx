@@ -36,6 +36,8 @@ const SCORE_BUCKETS = [
 export function DashboardCharts() {
   const [timeRange, setTimeRange] = useState<"7d" | "14d">("7d");
   const [distributionMode, setDistributionMode] = useState<"department" | "score">("department");
+  const [showTrendTable, setShowTrendTable] = useState(false);
+  const [showDistTable, setShowDistTable] = useState(false);
 
   const trendChartRef = useRef<HTMLDivElement>(null);
   const trendInstanceRef = useRef<echarts.ECharts | null>(null);
@@ -368,7 +370,44 @@ export function DashboardCharts() {
         </CardHeader>
 
         <CardContent className="p-4 pt-2">
-          <div ref={trendChartRef} className="h-64 w-full" />
+          <div ref={trendChartRef} className="h-64 w-full" aria-label="投递趋势与解析吞吐折线图" />
+          <div className="mt-2 border-t border-border/50 pt-2 flex items-center justify-between text-xs">
+            <button
+              type="button"
+              onClick={() => setShowTrendTable((v) => !v)}
+              className="text-[11px] text-muted-foreground hover:text-foreground underline underline-offset-2"
+            >
+              {showTrendTable ? "收起明细表格" : "查看数据明细表"}
+            </button>
+            <span className="font-mono text-[10px] text-muted-foreground">单位: 份</span>
+          </div>
+
+          {showTrendTable && (
+            <div className="mt-3 overflow-x-auto rounded border border-border/70 bg-muted/20">
+              <table className="w-full text-left font-mono text-[11px]">
+                <thead className="border-b border-border/60 bg-muted/40 text-muted-foreground">
+                  <tr>
+                    <th className="p-1.5 px-3">日期</th>
+                    <th className="p-1.5 px-3 text-right">新增投递</th>
+                    <th className="p-1.5 px-3 text-right">解析完成</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-border/40">
+                  {(timeRange === "7d" ? TREND_DATA_7D : TREND_DATA_14D).dates.map((d, i) => (
+                    <tr key={d}>
+                      <td className="p-1.5 px-3">{d}</td>
+                      <td className="p-1.5 px-3 text-right tabular-nums">
+                        {(timeRange === "7d" ? TREND_DATA_7D : TREND_DATA_14D).submissions[i]}
+                      </td>
+                      <td className="p-1.5 px-3 text-right tabular-nums">
+                        {(timeRange === "7d" ? TREND_DATA_7D : TREND_DATA_14D).parsed[i]}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
         </CardContent>
       </Card>
 
@@ -419,7 +458,49 @@ export function DashboardCharts() {
         </CardHeader>
 
         <CardContent className="p-4 pt-2">
-          <div ref={distributionChartRef} className="h-64 w-full" />
+          <div ref={distributionChartRef} className="h-64 w-full" aria-label="候选人分布图" />
+          <div className="mt-2 border-t border-border/50 pt-2 flex items-center justify-between text-xs">
+            <button
+              type="button"
+              onClick={() => setShowDistTable((v) => !v)}
+              className="text-[11px] text-muted-foreground hover:text-foreground underline underline-offset-2"
+            >
+              {showDistTable ? "收起明细表格" : "查看分布数据表"}
+            </button>
+            <span className="font-mono text-[10px] text-muted-foreground">
+              {distributionMode === "department" ? "占比合计 100%" : "评分区间"}
+            </span>
+          </div>
+
+          {showDistTable && (
+            <div className="mt-3 overflow-x-auto rounded border border-border/70 bg-muted/20">
+              <table className="w-full text-left font-mono text-[11px]">
+                <thead className="border-b border-border/60 bg-muted/40 text-muted-foreground">
+                  <tr>
+                    <th className="p-1.5 px-3">
+                      {distributionMode === "department" ? "项目组" : "评分梯队"}
+                    </th>
+                    <th className="p-1.5 px-3 text-right">份数</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-border/40">
+                  {distributionMode === "department"
+                    ? DEPARTMENT_DATA.map((d) => (
+                        <tr key={d.name}>
+                          <td className="p-1.5 px-3 font-sans">{d.name}</td>
+                          <td className="p-1.5 px-3 text-right tabular-nums">{d.value}</td>
+                        </tr>
+                      ))
+                    : SCORE_BUCKETS.map((b) => (
+                        <tr key={b.range}>
+                          <td className="p-1.5 px-3">{b.range} ({b.hint})</td>
+                          <td className="p-1.5 px-3 text-right tabular-nums">{b.count}</td>
+                        </tr>
+                      ))}
+                </tbody>
+              </table>
+            </div>
+          )}
         </CardContent>
       </Card>
     </div>

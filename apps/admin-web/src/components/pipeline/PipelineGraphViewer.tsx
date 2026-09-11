@@ -14,7 +14,6 @@ import {
   Check,
   Copy,
 } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
@@ -313,18 +312,15 @@ export function PipelineGraphViewer({
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <div className="flex items-center gap-2">
-              <span className="font-mono text-xs font-bold uppercase tracking-wider text-muted-foreground">
-                LANGGRAPH WORKFLOW RUNTIME
+              <span className="font-mono text-xs text-muted-foreground">
+                流水线拓扑 · DAG v2.6
               </span>
-              <Badge variant="outline" className="font-mono text-[10px] text-muted-foreground">
-                DAG ID: wf_resume_v26
-              </Badge>
             </div>
             <CardTitle className="mt-1 text-base font-semibold tracking-tight text-foreground">
-              当前任务: {taskTitle}
+              {taskTitle}
             </CardTitle>
             <p className="mt-0.5 text-xs text-muted-foreground">
-              基于有向无环图 (DAG) 的简历抽取、Schema 校验与画像评分多 Agent 流水线
+              简历接入、多模态版面分析、实体提取、Schema 校验与匹配打分流转图谱
             </p>
           </div>
 
@@ -349,7 +345,7 @@ export function PipelineGraphViewer({
               aria-label="推进执行下一个节点"
             >
               <ArrowRight className="size-3" />
-              单步流转
+              单步推进
             </Button>
             <Button
               size="xs"
@@ -363,7 +359,7 @@ export function PipelineGraphViewer({
               ) : (
                 <Play className="size-3" />
               )}
-              {isSimulating ? "执行中..." : "完整执行"}
+              {isSimulating ? "执行中..." : "自动运行"}
             </Button>
           </div>
         </div>
@@ -386,8 +382,8 @@ export function PipelineGraphViewer({
         {/* DAG Horizontal Node Sequence */}
         <div>
           <div className="mb-2 flex items-center justify-between text-xs text-muted-foreground">
-            <span>执行拓扑图谱 (点击任意节点查看状态检查点)</span>
-            <span className="font-mono text-[11px]">CHECKPOINT: in_memory_sqlite</span>
+            <span>执行拓扑图谱 (点击节点查看快照)</span>
+            <span className="font-mono text-[11px]">持久化存储: SQLite Checkpoints</span>
           </div>
 
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
@@ -411,11 +407,12 @@ export function PipelineGraphViewer({
 
                   <button
                     type="button"
+                    aria-pressed={isSelected}
                     onClick={() => setSelectedNodeId(node.id)}
                     className={cn(
-                      "flex h-full flex-col justify-between rounded-lg border p-3 text-left transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+                      "flex h-full flex-col justify-between rounded-lg border p-3 text-left transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
                       isSelected
-                        ? "border-primary/80 bg-accent/30 shadow-xs ring-1 ring-primary/40"
+                        ? "border-primary bg-accent/30 ring-1 ring-primary/30"
                         : "border-border/70 bg-card hover:border-border hover:bg-muted/30",
                       isRunning && "border-cyan-500/80 bg-cyan-500/5 ring-1 ring-cyan-500/30",
                       isCompleted && "border-emerald-500/40",
@@ -425,14 +422,14 @@ export function PipelineGraphViewer({
                     <div>
                       {/* Step Header */}
                       <div className="flex items-center justify-between">
-                        <span className="font-mono text-[10px] font-semibold text-muted-foreground">
-                          STAGE {node.step}
+                        <span className="font-mono text-[10px] font-medium text-muted-foreground">
+                          第 {node.step} 步
                         </span>
                         {getNodeIcon(node.status)}
                       </div>
 
                       {/* Node Label */}
-                      <p className="mt-2 text-xs font-bold leading-snug text-foreground">
+                      <p className="mt-2 text-xs font-semibold leading-snug text-foreground">
                         {node.label}
                       </p>
 
@@ -447,7 +444,7 @@ export function PipelineGraphViewer({
                     <div className="mt-3 flex items-center justify-between border-t border-border/50 pt-2 font-mono text-[10px]">
                       <span
                         className={cn(
-                          "font-semibold",
+                          "font-medium",
                           isRunning && "text-cyan-700 dark:text-cyan-400",
                           isCompleted && "text-emerald-700 dark:text-emerald-400",
                           node.status === "pending" && "text-muted-foreground/60"
@@ -504,9 +501,9 @@ export function PipelineGraphViewer({
           <div className="mt-4 grid gap-4 lg:grid-cols-2">
             {/* IO Payloads */}
             <div className="space-y-2">
-              <div className="flex items-center gap-1.5 font-mono text-[11px] font-semibold text-foreground">
+              <div className="flex items-center gap-1.5 text-xs font-semibold text-foreground">
                 <FileCode2 className="size-3.5 text-muted-foreground" />
-                <span>STATE CHECKPOINT (INPUT / OUTPUT)</span>
+                <span>节点输入与输出数据 (JSON)</span>
               </div>
               <div className="h-44 overflow-auto rounded-md border border-border/80 bg-background/80 p-3 font-mono text-[11px] text-foreground">
                 <pre className="whitespace-pre leading-relaxed">
@@ -528,9 +525,9 @@ export function PipelineGraphViewer({
 
             {/* Execution Stream Logs */}
             <div className="space-y-2">
-              <div className="flex items-center gap-1.5 font-mono text-[11px] font-semibold text-foreground">
+              <div className="flex items-center gap-1.5 text-xs font-semibold text-foreground">
                 <Sparkles className="size-3.5 text-muted-foreground" />
-                <span>RUNTIME EVENT STREAM (LOGS)</span>
+                <span>节点执行事件流</span>
               </div>
               <div className="h-44 overflow-auto rounded-md border border-border/80 bg-background/80 p-3 font-mono text-[11px] text-muted-foreground">
                 {selectedNode.logs && selectedNode.logs.length > 0 ? (

@@ -47,7 +47,7 @@ services:
     build:
       context: ../..
       dockerfile: infra/docker/Dockerfile.api
-    command: ["/app/migrate"]
+    entrypoint: ["/app/migrate"]
     environment:
       DATABASE_URL: postgres://resumeflow:resumeflow_dev_only@postgres:5432/resumeflow?sslmode=disable
       MIGRATIONS_DIR: /workspace/migrations

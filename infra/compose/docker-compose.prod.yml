@@ -27,7 +27,7 @@ services:
 
   migrate:
     image: ${IMAGE_API:-ghcr.io/codepaint-studio/resumeflow-api:latest}
-    command: ["/app/migrate"]
+    entrypoint: ["/app/migrate"]
     environment:
       DATABASE_URL: ${DATABASE_URL:?DATABASE_URL is required}
       MIGRATIONS_DIR: /workspace/migrations

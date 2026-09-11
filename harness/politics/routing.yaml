@@ -1,0 +1,116 @@
+version: 1
+
+evaluation:
+  precedence: highest_priority_then_highest_model
+  matching: all_declared_conditions_must_match
+  unresolved_classification: strong
+  unresolved_classification_requires_review: true
+  default_route: module-change
+
+# Conditions are dimensions from the plan schema. A route may override the
+# default role levels and approval policy. The first tie-breaker is priority;
+# the second is the strongest required model level.
+routes:
+  - id: production-or-destructive-data
+    priority: 100
+    when:
+      data_impact: destructive
+    route:
+      planner: strong
+      coder: medium
+      reviewer: strong
+      security: strong
+      approval: required
+      rollback_required: true
+
+  - id: direct-security
+    priority: 100
+    when:
+      security_impact: direct
+    route:
+      planner: strong
+      coder: medium
+      reviewer: strong
+      security: strong
+      approval: required
+      rollback_required: true
+
+  - id: public-api
+    priority: 90
+    when:
+      api_impact: public
+    route:
+      planner: strong
+      coder: medium
+      reviewer: strong
+      approval: required
+      compatibility_review_required: true
+
+  - id: architecture-or-system
+    priority: 80
+    when:
+      scope: system
+    route:
+      planner: strong
+      coder: medium
+      reviewer: strong
+      approval: required
+      rollback_required: true
+
+  - id: ambiguous-or-hard-to-reverse
+    priority: 70
+    when_any:
+      - ambiguity: high
+      - reversibility: hard
+    route:
+      planner: strong
+      coder: medium
+      reviewer: strong
+      approval: required
+
+  - id: cross-module
+    priority: 60
+    when:
+      scope: cross-module
+    route:
+      planner: strong
+      coder: medium
+      reviewer: medium
+      approval: review_required
+
+  - id: module-change
+    priority: 40
+    when:
+      scope: module
+    route:
+      planner: medium
+      coder: small
+      reviewer: medium
+      approval: review_required
+
+  - id: bounded-local
+    priority: 20
+    when:
+      scope: local
+      api_impact: none
+      data_impact: none
+      security_impact: none
+      ambiguity: low
+      reversibility: easy
+    route:
+      planner: medium
+      coder: small
+      reviewer: small
+      approval: not_required
+
+approval:
+  required_for:
+    - destructive data changes
+    - direct security changes
+    - public API compatibility changes
+    - production configuration or deployment changes
+    - changes outside the task allowed_paths
+  review_required_for:
+    - every non-trivial plan
+    - every verification failure that changes implementation
+    - every dependency or lockfile change

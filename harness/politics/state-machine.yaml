@@ -1,0 +1,39 @@
+version: 1
+
+plan:
+  initial: draft
+  terminal: [completed, failed, cancelled]
+  states: [draft, planned, awaiting_approval, executing, verifying, reviewing, completed, failed, cancelled, needs_replan]
+  transitions:
+    draft: [planned, cancelled]
+    planned: [awaiting_approval, executing, needs_replan, cancelled]
+    awaiting_approval: [executing, needs_replan, cancelled]
+    executing: [verifying, failed, needs_replan, cancelled]
+    verifying: [reviewing, failed, needs_replan]
+    reviewing: [completed, failed, needs_replan]
+    needs_replan: [draft, planned, cancelled]
+    failed: [draft, cancelled]
+    completed: []
+    cancelled: []
+
+task:
+  initial: pending
+  terminal: [completed, failed, cancelled]
+  states: [pending, ready, running, blocked, verifying, reviewing, completed, failed, cancelled, needs_replan]
+  transitions:
+    pending: [ready, cancelled]
+    ready: [running, cancelled]
+    running: [verifying, blocked, failed, needs_replan, cancelled]
+    blocked: [ready, needs_replan, cancelled]
+    verifying: [reviewing, failed, needs_replan]
+    reviewing: [completed, failed, needs_replan]
+    needs_replan: [pending, cancelled]
+    failed: [pending, cancelled]
+    completed: []
+    cancelled: []
+
+invariants:
+  - no execution state may bypass verification
+  - completed is reachable only after reviewing
+  - needs_replan preserves the prior plan and evidence
+  - terminal states have no active task

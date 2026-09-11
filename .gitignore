@@ -33,3 +33,4 @@ deploy/compose/data/
 # Keep product and engineering documentation versioned.
 !docs/*.md
 plan/*
+.harness/

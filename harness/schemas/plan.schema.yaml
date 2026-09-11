@@ -1,0 +1,90 @@
+kind: plan_schema
+schema_version: 1
+
+required:
+  - kind
+  - schema_version
+  - plan_id
+  - title
+  - objective
+  - classification
+  - scope
+  - context_pack
+  - assumptions
+  - risks
+  - acceptance_criteria
+  - validation
+  - rollback
+  - route
+  - approvals
+  - task_ids
+  - status
+
+properties:
+  kind:
+    const: plan
+  schema_version:
+    const: 1
+  plan_id:
+    type: string
+    pattern: '^[a-z0-9]+(?:-[a-z0-9]+)*$'
+  status:
+    enum: [draft, planned, awaiting_approval, executing, verifying, reviewing, completed, failed, cancelled, needs_replan]
+  classification:
+    required: [scope, api_impact, data_impact, security_impact, ambiguity, reversibility]
+    properties:
+      scope:
+        enum: [local, module, cross-module, system]
+      api_impact:
+        enum: [none, internal, public]
+      data_impact:
+        enum: [none, additive, destructive]
+      security_impact:
+        enum: [none, possible, direct]
+      ambiguity:
+        enum: [low, medium, high]
+      reversibility:
+        enum: [easy, moderate, hard]
+      architecture_impact:
+        enum: [none, possible, direct]
+  scope:
+    required: [summary, affected_paths, excluded_paths]
+  context_pack:
+    required: [files, symbols, contracts, commands, constraints]
+  acceptance_criteria:
+    type: list
+    item_required: [id, description, verification]
+  validation:
+    required: [commands, required_checks]
+  rollback:
+    required: [strategy, required]
+  route:
+    required: [planner, coder, reviewer, approval]
+  approvals:
+    required: [required, status]
+    properties:
+      required:
+        type: boolean
+      status:
+        enum: [not_required, pending, approved, rejected, expired]
+      actor:
+        type: string_or_null
+      requested_at:
+        type: iso8601_timestamp_or_null
+      decided_at:
+        type: iso8601_timestamp_or_null
+      note:
+        type: string
+  task_ids:
+    type: list
+    unique: true
+  task_dependencies:
+    type: acyclic_graph
+
+invariants:
+  - every acceptance criterion has a verification method
+  - every task_id has a matching task artifact
+  - task dependency graph is acyclic
+  - destructive, direct-security, public-api, and system changes include rollback
+  - completed requires verification and review evidence
+  - unknown classification values are not treated as safe defaults

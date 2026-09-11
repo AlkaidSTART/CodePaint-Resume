@@ -1,0 +1,16 @@
+kind: state
+schema_version: 1
+plan_id: harness-governance-baseline
+plan_status: completed
+active_task_id: null
+
+task_statuses:
+  implement-governance-baseline: completed
+
+attempts:
+  implement-governance-baseline: 1
+
+blockers: []
+evidence_refs:
+  - harness/runtime/states/harness-governance-baseline--implement-governance-baseline.evidence.yaml
+updated_at: 2026-09-11T14:25:54+08:00

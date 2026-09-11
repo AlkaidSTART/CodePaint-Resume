@@ -1,0 +1,62 @@
+kind: task_schema
+schema_version: 1
+
+required:
+  - kind
+  - schema_version
+  - plan_id
+  - task_id
+  - title
+  - objective
+  - status
+  - owner_role
+  - model_level
+  - dependencies
+  - allowed_paths
+  - forbidden_paths
+  - inputs
+  - outputs
+  - acceptance_criteria
+  - checks
+  - retry_policy
+  - evidence_ref
+
+properties:
+  kind:
+    const: task
+  schema_version:
+    const: 1
+  task_id:
+    type: string
+    pattern: '^[a-z0-9]+(?:-[a-z0-9]+)*$'
+  status:
+    enum: [pending, ready, running, blocked, verifying, reviewing, completed, failed, cancelled, needs_replan]
+  owner_role:
+    enum: [coder, reviewer, security, planner]
+  model_level:
+    enum: [small, medium, strong]
+  dependencies:
+    type: list
+    unique: true
+  allowed_paths:
+    type: list
+    min_items: 1
+  forbidden_paths:
+    type: list
+  acceptance_criteria:
+    type: list
+    item_required: [id, description, verification]
+  checks:
+    type: list
+    item_required: [name, command, required]
+  retry_policy:
+    required: [max_attempts, retryable_failure_classes]
+  evidence_ref:
+    type: repository_relative_path
+
+invariants:
+  - running requires all dependencies to be completed
+  - task writes stay within allowed_paths and outside forbidden_paths
+  - a task cannot be completed without evidence_ref
+  - scope expansion requires needs_replan
+  - max_attempts is no greater than the model policy unless approved

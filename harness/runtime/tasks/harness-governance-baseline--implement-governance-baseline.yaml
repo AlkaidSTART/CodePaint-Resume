@@ -1,0 +1,87 @@
+kind: task
+schema_version: 1
+plan_id: harness-governance-baseline
+task_id: implement-governance-baseline
+title: Implement the Harness governance baseline
+objective: Add the control-plane policies, contracts, checks, documentation, and root agent instructions described by the plan.
+
+status: completed
+owner_role: coder
+model_level: medium
+dependencies: []
+
+allowed_paths:
+  - harness/**
+  - AGENTS.md
+forbidden_paths:
+  - .env*
+  - '**/*.pem'
+  - '**/*.key'
+  - secrets/**
+  - credentials/**
+  - src/**
+  - public/**
+
+inputs:
+  context_pack_ref: harness/runtime/plans/harness-governance-baseline.yaml
+  assumptions:
+    - The source application is not part of this task.
+outputs:
+  expected_files:
+    - AGENTS.md
+    - harness/README.md
+    - harness/politics/models.yaml
+    - harness/politics/routing.yaml
+    - harness/politics/permissions.yaml
+    - harness/politics/state-machine.yaml
+    - harness/rules/coding.md
+    - harness/rules/workflow.md
+    - harness/schemas/plan.schema.yaml
+    - harness/schemas/task.schema.yaml
+    - harness/schemas/state.schema.yaml
+    - harness/schemas/evidence.schema.yaml
+    - harness/checks/validate.sh
+    - harness/checks/verify.sh
+  notes:
+    - Existing application source was not changed.
+
+acceptance_criteria:
+  - id: ac-1
+    description: All Harness YAML and required artifacts validate.
+    verification: bash harness/checks/validate.sh
+  - id: ac-2
+    description: Repository code passes lint, typecheck, and build.
+    verification: Run the corresponding Harness checks.
+  - id: ac-3
+    description: Missing tests are reported as a failure rather than a false pass.
+    verification: bash harness/checks/test.sh exits 1 with an actionable message.
+
+checks:
+  - name: harness-validate
+    command: bash harness/checks/validate.sh
+    required: true
+  - name: shell-syntax
+    command: bash -n harness/checks/*.sh
+    required: true
+  - name: lint
+    command: bash harness/checks/lint.sh
+    required: true
+  - name: typecheck
+    command: bash harness/checks/typecheck.sh
+    required: true
+  - name: test
+    command: bash harness/checks/test.sh
+    required: false
+  - name: build
+    command: bash harness/checks/build.sh
+    required: true
+
+retry_policy:
+  max_attempts: 2
+  retryable_failure_classes:
+    - transient_tooling
+    - flaky_test
+
+evidence_ref: harness/runtime/states/harness-governance-baseline--implement-governance-baseline.evidence.yaml
+created_at: 2026-09-11T14:25:54+08:00
+updated_at: 2026-09-11T14:25:54+08:00

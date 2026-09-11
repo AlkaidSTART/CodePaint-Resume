@@ -1,0 +1,92 @@
+version: 1
+
+enforcement:
+  default: deny
+  deny_overrides_allow: true
+  path_format: repository_relative_glob
+  unlisted_commands: deny
+  unlisted_write_paths: deny
+
+# The control plane must be readable by all roles. Only runtime artifacts may
+# be written during normal execution; policy and schema changes need approval.
+control_plane:
+  read:
+    - harness/**
+  write:
+    - harness/runtime/plans/**
+    - harness/runtime/tasks/**
+    - harness/runtime/states/**
+  approval_required:
+    - harness/politics/**
+    - harness/rules/**
+    - harness/schemas/**
+    - harness/templates/**
+    - harness/checks/**
+
+workspace:
+  read:
+    - '**/*'
+  write:
+    - src/**
+    - packages/**
+    - tests/**
+    - public/**
+    - docs/**
+  approval_required:
+    - package.json
+    - bun.lock
+    - pnpm-lock.yaml
+    - tsconfig*.json
+    - vite.config.*
+    - .oxlintrc.*
+    - .github/**
+    - infra/**
+    - deploy/**
+    - production/**
+
+protected:
+  read_denied:
+    - .env
+    - .env.*
+    - '**/*.pem'
+    - '**/*.key'
+    - secrets/**
+    - credentials/**
+  write_denied:
+    - .env
+    - .env.*
+    - '**/*.pem'
+    - '**/*.key'
+    - secrets/**
+    - credentials/**
+    - production/**
+  delete_denied:
+    - .git/**
+    - harness/politics/**
+    - harness/rules/**
+    - harness/schemas/**
+
+commands:
+  allowed:
+    - bash harness/checks/validate.sh
+    - bash harness/checks/lint.sh
+    - bash harness/checks/typecheck.sh
+    - bash harness/checks/test.sh
+    - bash harness/checks/build.sh
+    - bash harness/checks/verify.sh
+    - bun run lint
+    - bun run build
+    - bun run test
+    - bunx tsc -b --pretty false
+    - node
+    - ruby
+  approval_required:
+    - bun install
+    - bun add
+    - git commit
+    - git push
+    - production database migration
+  denied:
+    - rm -rf /
+    - git reset --hard
+    - production database drop

@@ -13,7 +13,9 @@ make infra-logs
 
 The development stack exposes the public web app at `http://localhost:3000`,
 the API at `http://localhost:8080`, MinIO at `http://localhost:9000` and its
-console at `http://localhost:9001`. Enable optional monitoring with:
+console at `http://localhost:9001`. Override `POSTGRES_PORT`, `REDIS_PORT`,
+`MINIO_PORT`, `MINIO_CONSOLE_PORT`, `API_PORT`, or `WEB_PORT` when a host port
+is already in use. Enable optional monitoring with:
 
 ```bash
 docker compose -f infra/compose/docker-compose.dev.yml --profile monitoring up -d

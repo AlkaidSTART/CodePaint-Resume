@@ -85,8 +85,7 @@ export function ApplicantsPage() {
       {/* Page Header */}
       <div className="anim-header flex flex-col justify-between gap-4 border-b border-border/80 pb-6 sm:flex-row sm:items-center">
         <div>
-          <div className="flex items-center gap-2 font-mono text-[11px] uppercase tracking-wider text-muted-foreground">
-            <span className="size-1.5 rounded-full bg-cyan-500" aria-hidden="true" />
+          <div className="font-mono text-[11px] uppercase tracking-wider text-muted-foreground">
             <span>APPLICANT REGISTRY</span>
           </div>
           <h1 className="mt-1 text-2xl font-bold tracking-tight text-foreground sm:text-3xl">

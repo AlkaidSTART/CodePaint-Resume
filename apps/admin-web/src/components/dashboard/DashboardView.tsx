@@ -26,6 +26,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
+import { DashboardCharts } from "./DashboardCharts";
 
 gsap.registerPlugin(useGSAP);
 
@@ -301,17 +302,14 @@ function TaskQueueSection({ tasks }: { tasks: TaskRecord[] }) {
     <Card className="flex flex-col border shadow-sm">
       <CardHeader className="border-b p-4 pb-3.5">
         <div className="flex items-center justify-between gap-3">
-          <div>
-            <div className="flex items-center gap-2">
-              <span className="size-1.5 rounded-full bg-cyan-500" aria-hidden="true" />
+            <div>
               <CardTitle className="text-base font-semibold tracking-tight">
                 异步解析任务流水线
               </CardTitle>
+              <p className="mt-1 text-xs text-muted-foreground">
+                实时监控 OCR 抽取、LLM 评分与版面分析执行队列
+              </p>
             </div>
-            <p className="mt-1 text-xs text-muted-foreground">
-              实时监控 OCR 抽取、LLM 评分与版面分析执行队列
-            </p>
-          </div>
           <Badge variant="secondary" className="font-mono text-xs">
             {taskList.length} 个任务
           </Badge>
@@ -478,8 +476,7 @@ export function DashboardView({
       {/* Page Header */}
       <header className="dashboard-header flex flex-col justify-between gap-4 border-b border-border/80 pb-6 sm:flex-row sm:items-end">
         <div>
-          <div className="flex items-center gap-2 font-mono text-[11px] uppercase tracking-wider text-muted-foreground">
-            <span className="size-1.5 rounded-full bg-emerald-500" aria-hidden="true" />
+          <div className="font-mono text-[11px] uppercase tracking-wider text-muted-foreground">
             <span>2026 AUTUMN CYCLE · RECRUITMENT OPERATIONS</span>
           </div>
           <h1 className="mt-2 text-2xl font-bold tracking-tight text-foreground sm:text-3xl">
@@ -518,6 +515,11 @@ export function DashboardView({
                 <MetricItem key={metric.label} {...metric} />
               ))}
             </div>
+          </section>
+
+          {/* ECharts Visual Data Insights & Distributions */}
+          <section aria-label="招新数据分析与趋势" className="dashboard-panel">
+            <DashboardCharts />
           </section>
 
           {/* Workbench Grid: Left stream + Right pipeline */}

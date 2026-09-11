@@ -86,9 +86,11 @@ export function RegisterPage() {
               to="/"
               className="group inline-flex items-center gap-3 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
             >
-              <span className="flex size-9 items-center justify-center rounded-lg bg-foreground font-mono text-xs font-bold text-background transition-transform duration-200 group-hover:scale-95">
-                CP
-              </span>
+              <img
+                src="/logo.png"
+                alt="CodePaint Studio"
+                className="size-9 rounded-lg object-contain shadow-xs transition-transform duration-200 group-hover:scale-105"
+              />
               <div>
                 <span className="block font-mono text-xs font-semibold tracking-[0.24em] text-foreground">
                   CODEPAINT STUDIO
@@ -102,8 +104,7 @@ export function RegisterPage() {
 
           {/* Center Editorial Narrative */}
           <div className="relative z-10 my-auto max-w-xl py-12">
-            <div className="mb-6 flex items-center gap-2 font-mono text-[11px] uppercase tracking-widest text-muted-foreground">
-              <span className="size-1.5 rounded-full bg-cyan-500" aria-hidden="true" />
+            <div className="mb-6 font-mono text-[11px] uppercase tracking-widest text-muted-foreground">
               <span>COLLABORATOR ONBOARDING</span>
             </div>
 
@@ -152,10 +153,7 @@ export function RegisterPage() {
           {/* Bottom Security Note */}
           <div className="relative z-10 flex items-center justify-between border-t border-border/60 pt-6 text-xs text-muted-foreground">
             <span className="font-mono text-[11px]">ACCESS CONTROL · LEVEL 2</span>
-            <div className="flex items-center gap-2">
-              <span className="size-1.5 rounded-full bg-cyan-500" aria-hidden="true" />
-              <span className="font-mono text-[11px]">AUTHENTICATED PIPELINE</span>
-            </div>
+            <span className="font-mono text-[11px]">AUTHENTICATED PIPELINE</span>
           </div>
         </aside>
 
@@ -167,9 +165,11 @@ export function RegisterPage() {
               to="/"
               className="flex items-center gap-2.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
             >
-              <span className="flex size-8 items-center justify-center rounded-md bg-foreground font-mono text-xs font-bold text-background">
-                CP
-              </span>
+              <img
+                src="/logo.png"
+                alt="CodePaint Logo"
+                className="size-8 rounded-md object-contain"
+              />
               <span className="font-mono text-xs font-bold tracking-[0.2em] text-foreground">
                 CODEPAINT
               </span>

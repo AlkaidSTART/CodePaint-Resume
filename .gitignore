@@ -34,3 +34,4 @@ deploy/compose/data/
 !docs/*.md
 plan/*
 .harness/
+harness/*

@@ -10,7 +10,7 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
       - ../../infra/postgres/init.sql:/docker-entrypoint-initdb.d/00-init.sql:ro
-      - ../../migrations:/docker-entrypoint-initdb.d/migrations:ro
+      - ../migrations:/docker-entrypoint-initdb.d/migrations:ro
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U resumeflow -d resumeflow"]
       interval: 5s
@@ -52,7 +52,7 @@ services:
       DATABASE_URL: postgres://resumeflow:resumeflow_dev_only@postgres:5432/resumeflow?sslmode=disable
       MIGRATIONS_DIR: /workspace/migrations
     volumes:
-      - ../../migrations:/workspace/migrations:ro
+      - ../migrations:/workspace/migrations:ro
     depends_on:
       postgres:
         condition: service_healthy

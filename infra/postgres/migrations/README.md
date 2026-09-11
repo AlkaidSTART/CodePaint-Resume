@@ -1,6 +1,9 @@
-The canonical migrations live in the repository root at `migrations/`.
+The canonical migrations live in `infra/migrations/`.
 
-`docker-compose.dev.yml` mounts that directory into the Postgres init directory;
-`init.sql` includes `migrations/001_init.sql` when a fresh volume is created.
-Keep this directory as the documented infra boundary without duplicating schema
-files.
+`infra/compose/docker-compose.dev.yml` mounts that directory into the Postgres
+init directory, and `infra/postgres/init.sql` includes
+`migrations/001_init.sql` when a fresh volume is created. The development and
+production migrate services mount the same directory into their configured
+container path.
+
+Do not duplicate schema files here; this directory contains documentation only.

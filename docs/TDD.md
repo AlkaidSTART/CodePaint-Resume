@@ -203,9 +203,12 @@ resume-flow/
 ├── services/
 │   └── ocr/
 │
-├── deploy/
+├── infra/
+│   ├── compose/
 │   ├── docker/
-│   └── compose/
+│   ├── migrations/
+│   ├── postgres/
+│   └── scripts/
 │
 ├── docs/
 │   ├── PRD.md
@@ -214,8 +217,6 @@ resume-flow/
 │   ├── UI-DESIGN.md
 │   ├── UI-DESIGN-USER.md
 │   └── UI-DESIGN-ADMIN.md
-│
-├── migrations/
 │
 ├── Makefile
 └── README.md

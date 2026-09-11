@@ -12,13 +12,14 @@ pnpm dev:admin    # http://localhost:5174
 make api          # http://localhost:8080
 ```
 
-本地依赖可通过 `make infra` 启动 PostgreSQL、Redis 和 MinIO。数据库迁移可从仓库根目录执行 `make migrate`，也可通过 `MIGRATIONS_DIR` 指定迁移目录。
+本地依赖可通过 `make infra` 启动 PostgreSQL、Redis 和 MinIO。数据库迁移位于 `infra/migrations/`，可从仓库根目录执行 `make migrate`，也可通过 `MIGRATIONS_DIR` 指定迁移目录。
 
 ## 目录
 
 - `apps/public-web`: 公开招新、报名和个人状态
 - `apps/admin-web`: recruiter 工作台
 - `backend`: Go/Gin API、后端 auth/RBAC 和 worker 入口
+- `infra`: 开发与生产 Compose、数据库迁移、Postgres 初始化和运维脚本
 - `docs`: PRD、TDD、API 与 UI 设计约定
 
 两个前端应用各自独立：类型、API client、auth-client、工具和基础 UI 分别维护在各应用自己的 `src/lib` 下，状态分别由应用内的 Zustand store（`src/store`）管理，应用之间不共享源码或 store。

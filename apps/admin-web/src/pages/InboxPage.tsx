@@ -1,6 +1,9 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
+import gsap from "gsap";
+import { useGSAP } from "@gsap/react";
 import {
   CheckCheck,
+  FileText,
   Send,
 } from "lucide-react";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
@@ -13,10 +16,32 @@ import {
 } from "@/components/ui/card";
 import { useAdminStore } from "../store/adminStore";
 
+gsap.registerPlugin(useGSAP);
+
 export function InboxPage() {
+  const containerRef = useRef<HTMLDivElement>(null);
   const dashboard = useAdminStore((state) => state.dashboard);
   const applications = dashboard?.recentApplications ?? [];
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
+  const [feedback, setFeedback] = useState<string | null>(null);
+
+  useGSAP(
+    () => {
+      if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+      const ctx = gsap.context(() => {
+        gsap.from(".anim-inbox-header", { opacity: 0, y: -8, duration: 0.3, ease: "power2.out" });
+        gsap.from(".anim-inbox-item", {
+          opacity: 0,
+          y: 6,
+          duration: 0.25,
+          stagger: 0.04,
+          ease: "power2.out",
+        });
+      }, containerRef);
+      return () => ctx.revert();
+    },
+    { dependencies: [applications.length] }
+  );
 
   const toggleSelect = (id: string) => {
     setSelectedIds((prev) =>
@@ -32,48 +57,82 @@ export function InboxPage() {
     }
   };
 
+  const handleBatchApprove = () => {
+    setFeedback(`已批量将选中的 ${selectedIds.length} 位候选人标记为「初筛通过」`);
+    setSelectedIds([]);
+    setTimeout(() => setFeedback(null), 3000);
+  };
+
+  const handleBatchNotify = () => {
+    setFeedback(`已为 ${selectedIds.length} 位候选人生成录用/面试通知邮件草稿`);
+    setSelectedIds([]);
+    setTimeout(() => setFeedback(null), 3000);
+  };
+
   return (
-    <div className="space-y-6">
-      <div className="flex flex-col justify-between gap-4 border-b pb-6 sm:flex-row sm:items-center">
+    <div ref={containerRef} className="space-y-6">
+      {/* Header */}
+      <div className="anim-inbox-header flex flex-col justify-between gap-4 border-b border-border/80 pb-6 sm:flex-row sm:items-center">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight text-foreground sm:text-3xl">
+          <div className="flex items-center gap-2 font-mono text-[11px] uppercase tracking-wider text-muted-foreground">
+            <span className="size-1.5 rounded-full bg-cyan-500" aria-hidden="true" />
+            <span>SUBMISSION INBOX</span>
+          </div>
+          <h1 className="mt-1 text-2xl font-bold tracking-tight text-foreground sm:text-3xl">
             报名收件箱
           </h1>
           <p className="mt-1 text-xs text-muted-foreground sm:text-sm">
-            集中审核新投递的简历申请，支持批量初审、通过与发送通知邮件
+            集中处理最新投递申请，支持批量初审、流转与飞书/邮件协同推送
           </p>
         </div>
 
         {selectedIds.length > 0 && (
           <div className="flex items-center gap-2">
-            <Button size="sm" variant="outline" className="gap-1 text-xs">
+            <Button
+              size="sm"
+              variant="outline"
+              className="gap-1.5 text-xs font-medium"
+              onPress={handleBatchApprove}
+            >
               <CheckCheck className="size-3.5 text-emerald-600" />
-              批量初筛通过 ({selectedIds.length})
+              初审通过 ({selectedIds.length})
             </Button>
-            <Button size="sm" variant="outline" className="gap-1 text-xs">
-              <Send className="size-3.5 text-cyan-600" />
-              批量发送通知
+            <Button
+              size="sm"
+              variant="default"
+              className="gap-1.5 text-xs font-medium"
+              onPress={handleBatchNotify}
+            >
+              <Send className="size-3.5" />
+              发送通知
             </Button>
           </div>
         )}
       </div>
 
+      {feedback && (
+        <div className="rounded-lg border border-emerald-500/30 bg-emerald-500/10 p-3 text-xs font-medium text-emerald-800 dark:text-emerald-300">
+          {feedback}
+        </div>
+      )}
+
+      {/* Inbox List Card */}
       <Card className="border shadow-sm">
-        <CardHeader className="flex flex-row items-center justify-between p-4 border-b">
+        <CardHeader className="flex flex-row items-center justify-between border-b p-4">
           <div className="flex items-center gap-3">
             <input
               type="checkbox"
               checked={selectedIds.length > 0 && selectedIds.length === applications.length}
               onChange={selectAll}
-              className="size-4 rounded border-border"
-              aria-label="全选"
+              className="size-4 rounded border-border focus-visible:ring-2 focus-visible:ring-ring"
+              aria-label="全选所有申请"
             />
-            <span className="text-xs font-semibold text-muted-foreground">
+            <span className="font-mono text-xs text-muted-foreground">
               已选 {selectedIds.length} / {applications.length} 项
             </span>
           </div>
-          <Badge variant="secondary" className="text-xs">
-            待处理申请 12 份
+          <Badge variant="secondary" className="font-mono text-xs">
+            待审申请 {applications.length} 份
           </Badge>
         </CardHeader>
 
@@ -84,20 +143,20 @@ export function InboxPage() {
               return (
                 <li
                   key={app.id}
-                  className={`flex items-center gap-3.5 p-4 transition-colors ${
-                    isSelected ? "bg-accent/40" : "hover:bg-muted/20"
+                  className={`anim-inbox-item flex items-center gap-4 p-4 transition-colors ${
+                    isSelected ? "bg-muted/40" : "hover:bg-muted/20"
                   }`}
                 >
                   <input
                     type="checkbox"
                     checked={isSelected}
                     onChange={() => toggleSelect(app.id)}
-                    className="size-4 rounded border-border"
+                    className="size-4 rounded border-border focus-visible:ring-2 focus-visible:ring-ring"
                     aria-label={`选择候选人 ${app.applicantName}`}
                   />
 
-                  <Avatar size="sm" className="bg-cyan-100 text-cyan-800">
-                    <AvatarFallback className="text-xs font-semibold text-cyan-800">
+                  <Avatar size="sm" className="border bg-muted">
+                    <AvatarFallback className="text-xs font-semibold">
                       {app.applicantName.slice(0, 1)}
                     </AvatarFallback>
                   </Avatar>
@@ -110,7 +169,7 @@ export function InboxPage() {
                       <Badge variant="outline" className="text-[10px]">
                         {app.role}
                       </Badge>
-                      <span className="text-[11px] text-muted-foreground">
+                      <span className="font-mono text-[11px] text-muted-foreground">
                         {app.submittedAt}
                       </span>
                     </div>
@@ -119,12 +178,13 @@ export function InboxPage() {
                     </p>
                   </div>
 
-                  <div className="flex items-center gap-2">
-                    <span className="font-mono text-xs font-semibold text-cyan-700">
+                  <div className="flex items-center gap-3">
+                    <span className="font-mono text-xs font-semibold text-foreground tabular-nums">
                       {app.score ? `${app.score}分` : "--"}
                     </span>
-                    <Button variant="ghost" size="xs" className="text-xs">
-                      查看简历
+                    <Button variant="ghost" size="xs" className="gap-1 text-xs">
+                      <FileText className="size-3 text-muted-foreground" />
+                      查阅材料
                     </Button>
                   </div>
                 </li>

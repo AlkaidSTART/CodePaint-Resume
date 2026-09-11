@@ -1,3 +1,6 @@
+import { useRef } from "react";
+import gsap from "gsap";
+import { useGSAP } from "@gsap/react";
 import {
   Layers,
   Plus,
@@ -13,7 +16,11 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 
+gsap.registerPlugin(useGSAP);
+
 export function TemplatesPage() {
+  const containerRef = useRef<HTMLDivElement>(null);
+
   const templates = [
     {
       id: "tpl-1",
@@ -44,53 +51,78 @@ export function TemplatesPage() {
     },
   ];
 
+  useGSAP(
+    () => {
+      if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+      const ctx = gsap.context(() => {
+        gsap.from(".anim-tpl-header", { opacity: 0, y: -8, duration: 0.3, ease: "power2.out" });
+        gsap.from(".anim-tpl-card", {
+          opacity: 0,
+          y: 8,
+          duration: 0.28,
+          stagger: 0.06,
+          ease: "power2.out",
+        });
+      }, containerRef);
+      return () => ctx.revert();
+    },
+    []
+  );
+
   return (
-    <div className="space-y-6">
-      <div className="flex flex-col justify-between gap-4 border-b pb-6 sm:flex-row sm:items-center">
+    <div ref={containerRef} className="space-y-6">
+      <div className="anim-tpl-header flex flex-col justify-between gap-4 border-b border-border/80 pb-6 sm:flex-row sm:items-center">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight text-foreground sm:text-3xl">
+          <div className="flex items-center gap-2 font-mono text-[11px] uppercase tracking-wider text-muted-foreground">
+            <span className="size-1.5 rounded-full bg-cyan-500" aria-hidden="true" />
+            <span>SCHEMA & PROMPTS</span>
+          </div>
+          <h1 className="mt-1 text-2xl font-bold tracking-tight text-foreground sm:text-3xl">
             简历解析模板库
           </h1>
           <p className="mt-1 text-xs text-muted-foreground sm:text-sm">
             配置不同专业组别的 Prompt 抽取规范、JSON Schema 及多模态大模型参数
           </p>
         </div>
-        <Button size="sm" className="gap-1.5 text-xs">
+        <Button size="sm" className="gap-1.5 text-xs font-medium">
           <Plus className="size-3.5" />
           新建解析模板
         </Button>
       </div>
 
-      <div className="grid gap-4 sm:grid-cols-3">
+      <div className="grid gap-5 sm:grid-cols-3">
         {templates.map((tpl) => (
-          <Card key={tpl.id} className="border shadow-sm flex flex-col justify-between">
-            <CardHeader className="p-4 pb-2">
+          <Card
+            key={tpl.id}
+            className="anim-tpl-card flex flex-col justify-between border shadow-sm transition-all hover:shadow"
+          >
+            <CardHeader className="border-b p-5 pb-3.5">
               <div className="flex items-start justify-between gap-2">
                 <CardTitle className="text-base font-semibold leading-snug">
                   {tpl.title}
                 </CardTitle>
                 {tpl.isDefault && (
-                  <Badge variant="default" className="text-[10px]">
-                    默认
+                  <Badge variant="default" className="text-[10px] font-mono">
+                    DEFAULT
                   </Badge>
                 )}
               </div>
-              <CardDescription className="text-xs">
-                版本: {tpl.version} · 模型: {tpl.model}
+              <CardDescription className="font-mono text-xs text-muted-foreground">
+                VERSION {tpl.version} · {tpl.model}
               </CardDescription>
             </CardHeader>
 
-            <CardContent className="p-4 pt-1 text-xs text-muted-foreground">
+            <CardContent className="p-5 text-xs text-muted-foreground">
               <p className="leading-relaxed">{tpl.description}</p>
-              <div className="mt-3 flex items-center gap-2 text-[11px] text-foreground font-medium">
+              <div className="mt-4 flex items-center gap-2 font-mono text-[11px] text-foreground font-medium">
                 <Layers className="size-3.5 text-cyan-600" />
                 <span>包含 {tpl.fieldsCount} 个结构化输出字段</span>
               </div>
             </CardContent>
 
-            <CardFooter className="flex items-center justify-between border-t bg-muted/10 p-3">
-              <Button variant="ghost" size="xs" className="text-xs">
-                测试解析
+            <CardFooter className="flex items-center justify-between border-t bg-muted/10 p-3.5">
+              <Button variant="ghost" size="xs" className="text-xs text-muted-foreground hover:text-foreground">
+                测试抽取效果
               </Button>
               <Button variant="outline" size="xs" className="text-xs">
                 编辑 Schema

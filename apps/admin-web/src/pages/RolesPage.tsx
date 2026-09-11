@@ -1,4 +1,6 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
+import gsap from "gsap";
+import { useGSAP } from "@gsap/react";
 import {
   BriefcaseBusiness,
   Edit2,
@@ -10,11 +12,12 @@ import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
-  CardDescription,
   CardFooter,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+
+gsap.registerPlugin(useGSAP);
 
 interface RoleItem {
   id: string;
@@ -71,7 +74,26 @@ const INITIAL_ROLES: RoleItem[] = [
 ];
 
 export function RolesPage() {
+  const containerRef = useRef<HTMLDivElement>(null);
   const [roles, setRoles] = useState<RoleItem[]>(INITIAL_ROLES);
+
+  useGSAP(
+    () => {
+      if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+      const ctx = gsap.context(() => {
+        gsap.from(".anim-roles-header", { opacity: 0, y: -8, duration: 0.3, ease: "power2.out" });
+        gsap.from(".anim-role-card", {
+          opacity: 0,
+          y: 8,
+          duration: 0.28,
+          stagger: 0.06,
+          ease: "power2.out",
+        });
+      }, containerRef);
+      return () => ctx.revert();
+    },
+    { dependencies: [roles.length] }
+  );
 
   const toggleStatus = (id: string) => {
     setRoles((prev) =>
@@ -82,79 +104,88 @@ export function RolesPage() {
   };
 
   return (
-    <div className="space-y-6">
-      <div className="flex flex-col justify-between gap-4 border-b pb-6 sm:flex-row sm:items-center">
+    <div ref={containerRef} className="space-y-6">
+      <div className="anim-roles-header flex flex-col justify-between gap-4 border-b border-border/80 pb-6 sm:flex-row sm:items-center">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight text-foreground sm:text-3xl">
+          <div className="flex items-center gap-2 font-mono text-[11px] uppercase tracking-wider text-muted-foreground">
+            <span className="size-1.5 rounded-full bg-cyan-500" aria-hidden="true" />
+            <span>RECRUITMENT POSITIONS</span>
+          </div>
+          <h1 className="mt-1 text-2xl font-bold tracking-tight text-foreground sm:text-3xl">
             招募岗位管理
           </h1>
           <p className="mt-1 text-xs text-muted-foreground sm:text-sm">
-            维护各项目组招募名额、JD 描述与招新流转规则
+            维护各项目组招募名额、JD 描述与录取流转配额
           </p>
         </div>
-        <Button size="sm" className="gap-1.5 text-xs">
+        <Button size="sm" className="gap-1.5 text-xs font-medium">
           <Plus className="size-3.5" />
           发布新岗位
         </Button>
       </div>
 
-      <div className="grid gap-4 sm:grid-cols-2">
-        {roles.map((r) => (
-          <Card key={r.id} className="border shadow-sm transition-all hover:shadow">
-            <CardHeader className="p-4 pb-2">
-              <div className="flex items-start justify-between gap-2">
-                <div>
-                  <CardTitle className="text-base font-semibold">{r.name}</CardTitle>
-                  <CardDescription className="text-xs">标识符: {r.slug}</CardDescription>
-                </div>
-                <Badge
-                  variant={r.status === "open" ? "default" : "secondary"}
-                  className="text-[11px]"
-                >
-                  {r.status === "open" ? "正在招募" : "暂停申请"}
-                </Badge>
-              </div>
-            </CardHeader>
-
-            <CardContent className="space-y-3 p-4 pt-1 text-xs">
-              <p className="text-muted-foreground leading-relaxed">{r.description}</p>
-
-              <div className="flex flex-wrap gap-1">
-                {r.tags.map((t) => (
-                  <Badge key={t} variant="outline" className="text-[10px]">
-                    {t}
+      <div className="grid gap-5 sm:grid-cols-2">
+        {roles.map((r) => {
+          return (
+            <Card
+              key={r.id}
+              className="anim-role-card flex flex-col justify-between border shadow-sm transition-all hover:shadow"
+            >
+              <CardHeader className="p-5 pb-3 border-b">
+                <div className="flex items-start justify-between gap-3">
+                  <div>
+                    <CardTitle className="text-base font-semibold">{r.name}</CardTitle>
+                    <span className="font-mono text-xs text-muted-foreground">ID: {r.slug}</span>
+                  </div>
+                  <Badge
+                    variant={r.status === "open" ? "default" : "secondary"}
+                    className="text-[11px] font-medium"
+                  >
+                    {r.status === "open" ? "正在招募" : "暂停申请"}
                   </Badge>
-                ))}
-              </div>
-
-              <div className="flex items-center justify-between rounded-lg bg-muted/40 p-2.5">
-                <div className="flex items-center gap-1.5 text-muted-foreground">
-                  <Users className="size-3.5 text-cyan-600" />
-                  <span>当前投递：<strong className="text-foreground">{r.count}</strong> 人</span>
                 </div>
-                <div className="flex items-center gap-1.5 text-muted-foreground">
-                  <BriefcaseBusiness className="size-3.5 text-emerald-600" />
-                  <span>录取名额：<strong className="text-foreground">{r.capacity}</strong> 位</span>
-                </div>
-              </div>
-            </CardContent>
+              </CardHeader>
 
-            <CardFooter className="flex items-center justify-between border-t bg-muted/10 p-3">
-              <Button
-                variant="ghost"
-                size="xs"
-                onPress={() => toggleStatus(r.id)}
-                className="text-xs"
-              >
-                {r.status === "open" ? "暂停招募" : "恢复开放"}
-              </Button>
-              <Button variant="outline" size="xs" className="gap-1 text-xs">
-                <Edit2 className="size-3" />
-                编辑 JD
-              </Button>
-            </CardFooter>
-          </Card>
-        ))}
+              <CardContent className="space-y-4 p-5 text-xs">
+                <p className="leading-relaxed text-muted-foreground">{r.description}</p>
+
+                <div className="flex flex-wrap gap-1.5">
+                  {r.tags.map((t) => (
+                    <Badge key={t} variant="outline" className="text-[10px]">
+                      {t}
+                    </Badge>
+                  ))}
+                </div>
+
+                <div className="flex items-center justify-between rounded-lg border border-border/60 bg-muted/20 p-3">
+                  <div className="flex items-center gap-2 text-muted-foreground">
+                    <Users className="size-4 text-cyan-600" />
+                    <span>投递报名：<strong className="font-mono font-semibold text-foreground">{r.count}</strong> 份</span>
+                  </div>
+                  <div className="flex items-center gap-2 text-muted-foreground">
+                    <BriefcaseBusiness className="size-4 text-emerald-600" />
+                    <span>录取名额：<strong className="font-mono font-semibold text-foreground">{r.capacity}</strong> 位</span>
+                  </div>
+                </div>
+              </CardContent>
+
+              <CardFooter className="flex items-center justify-between border-t bg-muted/10 p-3.5">
+                <Button
+                  variant="ghost"
+                  size="xs"
+                  onPress={() => toggleStatus(r.id)}
+                  className="text-xs text-muted-foreground hover:text-foreground"
+                >
+                  {r.status === "open" ? "暂停招募" : "恢复开放"}
+                </Button>
+                <Button variant="outline" size="xs" className="gap-1 text-xs">
+                  <Edit2 className="size-3" />
+                  修改岗位 JD
+                </Button>
+              </CardFooter>
+            </Card>
+          );
+        })}
       </div>
     </div>
   );

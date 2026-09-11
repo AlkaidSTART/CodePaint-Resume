@@ -1,4 +1,4 @@
-.PHONY: dev-public dev-admin api worker migrate infra
+.PHONY: dev-public dev-admin api worker migrate infra infra-up infra-down infra-logs infra-migrate
 
 dev-public:
 	pnpm dev:public
@@ -15,5 +15,16 @@ worker:
 migrate:
 	cd backend && go run ./cmd/migrate
 
-infra:
-	docker compose -f deploy/compose/docker-compose.yml up -d
+infra: infra-up
+
+infra-up:
+	docker compose -f infra/compose/docker-compose.dev.yml up -d --build
+
+infra-down:
+	docker compose -f infra/compose/docker-compose.dev.yml down
+
+infra-logs:
+	docker compose -f infra/compose/docker-compose.dev.yml logs -f --tail=100
+
+infra-migrate:
+	docker compose -f infra/compose/docker-compose.dev.yml run --rm migrate

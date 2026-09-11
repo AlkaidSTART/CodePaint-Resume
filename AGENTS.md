@@ -17,6 +17,9 @@ non-trivial change.
   workspace.
 - The backend Go module lives under `backend/`; commands are in
   `backend/cmd/` and tests are colocated under `backend/`.
+- Infrastructure definitions live under `infra/`; `infra/compose/` is the
+  canonical development and production Compose boundary, while `deploy/` is
+  retained only for legacy compatibility.
 - Repository-wide TypeScript settings are in `tsconfig.json`; frontend package
   configs extend it and include shared package sources.
 - Configuration contracts are documented in `docs/ENV_MATRIX.md`. Never read,
@@ -50,6 +53,8 @@ silently.
 - Keep frontend changes within the relevant `apps/` or `packages/` boundary;
   keep backend changes within `backend/` unless the plan explicitly includes
   migrations, deployment, or documentation.
+- Treat `infra/`, `deploy/`, migrations, and production configuration as
+  infrastructure changes requiring an explicit plan, validation, and rollback.
 - Never read, print, commit, or modify secrets, `.env` files, private keys, or
   credential directories.
 - Do not modify `harness/politics`, `harness/rules`, schemas, or check scripts
@@ -76,3 +81,7 @@ bash harness/checks/build.sh
 backend Go tests because the root package currently has no `scripts.test`.
 Frontend package `lint` scripts currently perform TypeScript checking; keep
 that repository behavior explicit until a dedicated linter is introduced.
+
+For local infrastructure use `make infra-up`, `make infra-migrate`, and
+`make infra-down`. Never commit production credentials or run restore/deploy
+scripts without their explicit confirmation flags.

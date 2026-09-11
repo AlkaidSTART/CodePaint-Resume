@@ -36,3 +36,4 @@ infra/backups/
 plan/*
 .harness/
 harness/*
+.claude/*

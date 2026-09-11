@@ -1,8 +1,6 @@
 import { useState } from "react";
 import {
   BriefcaseBusiness,
-  CheckCircle,
-  Clock,
   Edit2,
   Plus,
   Users,

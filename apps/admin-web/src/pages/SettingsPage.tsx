@@ -1,13 +1,7 @@
 import { useState } from "react";
 import {
-  Bell,
   Check,
-  Key,
-  Lock,
   Save,
-  Shield,
-  Sparkles,
-  User,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -15,7 +9,6 @@ import {
   Card,
   CardContent,
   CardDescription,
-  CardFooter,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";

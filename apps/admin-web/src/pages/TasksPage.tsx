@@ -4,7 +4,6 @@ import {
   CheckCircle2,
   Clock3,
   LoaderCircle,
-  Play,
   RotateCw,
   Sparkles,
   XCircle,
@@ -18,7 +17,6 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Progress } from "@/components/ui/progress";
 import { useAdminStore } from "../store/adminStore";
 import type { TaskRecord, TaskStatus } from "../lib/types";
 

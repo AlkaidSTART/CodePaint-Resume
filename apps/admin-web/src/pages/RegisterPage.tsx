@@ -6,10 +6,8 @@ import {
   CheckCircle2,
   Lock,
   Mail,
-  ShieldAlert,
   Sparkles,
   User,
-  Users,
 } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
@@ -65,7 +63,11 @@ export function RegisterPage() {
 
     setError(null);
     try {
-      const ok = await register(name.trim(), email.trim(), role);
+      const ok = await register({
+        name: name.trim(),
+        email: email.trim(),
+        password,
+      });
       if (ok) {
         setSuccess(true);
         setTimeout(() => {

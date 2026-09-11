@@ -11,13 +11,9 @@ import {
   Inbox,
   LayoutDashboard,
   LogOut,
-  Menu,
   PanelLeft,
-  PanelLeftClose,
   Settings,
-  Sparkles,
   Users,
-  X,
 } from "lucide-react";
 import { Avatar, AvatarBadge, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";

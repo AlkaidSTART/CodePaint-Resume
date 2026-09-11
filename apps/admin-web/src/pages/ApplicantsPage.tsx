@@ -1,13 +1,10 @@
 import { useState, useMemo } from "react";
 import {
   Download,
-  Filter,
+  Eye,
   Plus,
   Search,
-  SlidersHorizontal,
   UserCheck,
-  UserX,
-  Eye,
 } from "lucide-react";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
@@ -24,15 +21,6 @@ import {
   InputGroupAddon,
   InputGroupInput,
 } from "@/components/ui/input-group";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import { applicationStatusLabel } from "@/lib/utils/index";
 import { useAdminStore } from "../store/adminStore";
 import type { Application } from "../lib/types";
 

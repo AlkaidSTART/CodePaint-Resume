@@ -3,7 +3,6 @@ import { Link, useNavigate } from "react-router-dom";
 import {
   AlertCircle,
   ArrowRight,
-  CheckCircle2,
   Eye,
   EyeOff,
   KeyRound,
@@ -23,7 +22,6 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
 import {
   InputGroup,
   InputGroupAddon,

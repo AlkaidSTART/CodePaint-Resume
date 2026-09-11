@@ -9,7 +9,8 @@ import type {
 } from "../types";
 
 const baseUrl =
-  (import.meta.env.VITE_API_BASE_URL as string | undefined) ?? "/api/v1";
+  (typeof import.meta !== "undefined" && import.meta.env?.VITE_API_BASE_URL) ||
+  "/api/v1";
 
 export class ApiError extends Error {
   readonly status: number;

@@ -1,11 +1,6 @@
 import {
-  Code,
-  FileCode,
-  FileText,
   Layers,
   Plus,
-  Sliders,
-  Sparkles,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";

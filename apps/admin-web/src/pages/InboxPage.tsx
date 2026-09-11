@@ -1,13 +1,7 @@
 import { useState } from "react";
 import {
-  Archive,
-  Check,
   CheckCheck,
-  FileCheck,
-  Mail,
   Send,
-  Sparkles,
-  Trash2,
 } from "lucide-react";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
@@ -15,9 +9,7 @@ import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
-  CardDescription,
   CardHeader,
-  CardTitle,
 } from "@/components/ui/card";
 import { useAdminStore } from "../store/adminStore";
 

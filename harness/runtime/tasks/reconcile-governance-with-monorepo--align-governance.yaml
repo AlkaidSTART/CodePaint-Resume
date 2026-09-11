@@ -5,7 +5,7 @@ task_id: align-governance
 title: Align governance with the monorepo
 objective: Update AGENTS.md and Harness policy, documentation, templates, schemas, and checks to match the pnpm workspace and Go backend.
 
-status: running
+status: completed
 owner_role: coder
 model_level: medium
 dependencies: []

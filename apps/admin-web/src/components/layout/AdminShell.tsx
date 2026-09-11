@@ -1,4 +1,8 @@
-import { useState, type PropsWithChildren } from "react";
+import {
+  useEffect,
+  useState,
+  type PropsWithChildren,
+} from "react";
 import { Link, NavLink, useNavigate } from "react-router-dom";
 import type { LucideIcon } from "lucide-react";
 import {
@@ -11,6 +15,8 @@ import {
   Inbox,
   LayoutDashboard,
   LogOut,
+  PanelLeft,
+  PanelLeftClose,
   Settings,
   Sparkles,
   Users,
@@ -26,6 +32,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Tooltip, TooltipTrigger } from "@/components/ui/tooltip";
+import { cn } from "@/lib/utils";
 import { useAuthStore } from "../../store/authStore";
 
 export type AdminShellNavItem = {
@@ -54,49 +61,73 @@ const DEFAULT_NAVIGATION: AdminShellNavItem[] = [
   { label: "系统设置", href: "/workspace/settings", icon: Settings, section: "system" },
 ];
 
-function ProductBrand() {
+function ProductBrand({ isCollapsed }: { isCollapsed: boolean }) {
   return (
     <Link
       to="/workspace/dashboard"
-      className="group flex items-center gap-3 rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+      className={cn(
+        "group flex items-center rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring transition-all duration-200",
+        isCollapsed ? "justify-center" : "gap-3"
+      )}
       aria-label="CodePaint 招新管理控制台"
     >
       <img
         src="/logo.png"
         alt="CodePaint Studio Logo"
-        className="size-8 rounded-lg object-contain shadow-sm transition-transform duration-200 group-hover:scale-105"
+        className="size-8 shrink-0 rounded-lg object-contain shadow-xs transition-transform duration-200 group-hover:scale-105 active:scale-95"
       />
-      <div className="min-w-0">
-        <div className="flex items-center gap-1.5">
-          <span className="font-mono text-xs font-bold tracking-[0.2em] text-foreground">
-            CODEPAINT
+      {!isCollapsed && (
+        <div className="min-w-0 transition-opacity duration-200">
+          <div className="flex items-center gap-1.5">
+            <span className="font-mono text-xs font-bold tracking-[0.2em] text-foreground">
+              CODEPAINT
+            </span>
+            <Badge
+              variant="outline"
+              className="border-border/60 bg-muted/30 px-1 py-0 text-[9px] font-mono text-muted-foreground"
+            >
+              PRO
+            </Badge>
+          </div>
+          <span className="block truncate text-[11px] font-medium text-muted-foreground">
+            招新与评审控制台
           </span>
-          <Badge variant="outline" className="border-border/60 bg-muted/30 px-1 py-0 text-[9px] font-mono text-muted-foreground">
-            PRO
-          </Badge>
         </div>
-        <span className="block truncate text-[11px] font-medium text-muted-foreground">
-          招新与评审控制台
-        </span>
-      </div>
+      )}
     </Link>
   );
 }
 
-function WorkspaceSwitcher({ workspaceName }: { workspaceName: string }) {
+function WorkspaceSwitcher({
+  workspaceName,
+  isCollapsed,
+}: {
+  workspaceName: string;
+  isCollapsed: boolean;
+}) {
   return (
     <DropdownMenuTrigger>
       <Button
         variant="outline"
         size="sm"
-        className="w-full justify-between gap-2 border-border/70 bg-card/50 text-xs font-medium hover:bg-muted/40"
+        className={cn(
+          "w-full border-border/70 bg-card/50 text-xs font-medium hover:bg-muted/40 transition-all duration-200",
+          isCollapsed ? "justify-center px-0 size-9" : "justify-between gap-2 px-2.5"
+        )}
+        aria-label="切换活动周期"
       >
-        <div className="flex items-center gap-2 truncate">
-          <span className="truncate">{workspaceName}</span>
-        </div>
-        <ChevronDown className="size-3 text-muted-foreground" aria-hidden="true" />
+        {isCollapsed ? (
+          <span className="font-mono text-xs font-bold text-foreground">
+            {workspaceName.slice(0, 2)}
+          </span>
+        ) : (
+          <>
+            <span className="truncate">{workspaceName}</span>
+            <ChevronDown className="size-3 text-muted-foreground" aria-hidden="true" />
+          </>
+        )}
       </Button>
-      <DropdownMenu className="w-56" placement="bottom start">
+      <DropdownMenu className="w-56" placement={isCollapsed ? "right top" : "bottom start"}>
         <DropdownMenuLabel>切换活动周期</DropdownMenuLabel>
         <DropdownMenuItem textValue="2026 秋季招新">
           <Check className="size-3.5 text-primary" />
@@ -117,67 +148,103 @@ function WorkspaceSwitcher({ workspaceName }: { workspaceName: string }) {
   );
 }
 
-function SidebarNav({ items }: { items: AdminShellNavItem[] }) {
+function SidebarNav({
+  items,
+  isCollapsed,
+}: {
+  items: AdminShellNavItem[];
+  isCollapsed: boolean;
+}) {
   const coreItems = items.filter((i) => i.section !== "system");
   const systemItems = items.filter((i) => i.section === "system");
 
   const renderNavGroup = (title: string, groupItems: AdminShellNavItem[]) => (
     <div className="space-y-1">
-      <p className="px-2 pb-1 font-mono text-[10px] uppercase tracking-wider text-muted-foreground/80">
-        {title}
-      </p>
+      {!isCollapsed && (
+        <p className="px-2.5 pb-1 font-mono text-[10px] uppercase tracking-wider text-muted-foreground/80 transition-opacity duration-200">
+          {title}
+        </p>
+      )}
       <ul className="space-y-0.5">
         {groupItems.map((item) => {
           const Icon = item.icon;
-          return (
-            <li key={item.href}>
-              <NavLink
-                to={item.href}
-                className={({ isActive }) =>
-                  [
-                    "group relative flex min-h-9 items-center gap-2.5 rounded-lg px-2.5 text-xs font-medium transition-all",
-                    "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
-                    isActive
-                      ? "bg-accent/80 font-semibold text-accent-foreground shadow-xs"
-                      : "text-muted-foreground hover:bg-muted/60 hover:text-foreground",
-                  ].join(" ")
-                }
-              >
-                {({ isActive }) => (
-                  <>
-                    {isActive && (
-                      <span
-                        className="absolute left-0 top-2 bottom-2 w-1 rounded-r bg-primary"
-                        aria-hidden="true"
-                      />
-                    )}
-                    <Icon
-                      className={`size-4 shrink-0 transition-colors ${
-                        isActive ? "text-primary" : "text-muted-foreground group-hover:text-foreground"
-                      }`}
+
+          const linkContent = (
+            <NavLink
+              to={item.href}
+              className={({ isActive }) =>
+                cn(
+                  "group relative flex items-center rounded-lg text-xs font-medium transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring active:scale-[0.98]",
+                  isCollapsed
+                    ? "size-9 justify-center mx-auto"
+                    : "min-h-9 w-full gap-2.5 px-3",
+                  isActive
+                    ? "bg-foreground/[0.08] dark:bg-foreground/[0.14] font-semibold text-foreground shadow-xs"
+                    : "text-muted-foreground hover:bg-foreground/[0.04] hover:text-foreground"
+                )
+              }
+            >
+              {({ isActive }) => (
+                <>
+                  {/* Left accent indicator bar aligned directly with the active row */}
+                  {isActive && !isCollapsed && (
+                    <span
+                      className="absolute left-0 top-2 bottom-2 w-1 rounded-r-full bg-primary"
                       aria-hidden="true"
                     />
-                    <span className="min-w-0 flex-1 truncate">{item.label}</span>
-                    {item.badge && (
-                      <Badge
-                        variant="secondary"
-                        className="h-4 min-w-4 px-1 text-[10px] font-mono tabular-nums"
-                      >
-                        {item.badge}
-                      </Badge>
+                  )}
+                  <Icon
+                    className={cn(
+                      "size-4 shrink-0 transition-colors duration-150",
+                      isActive
+                        ? "text-primary"
+                        : "text-muted-foreground group-hover:text-foreground"
                     )}
-                  </>
-                )}
-              </NavLink>
-            </li>
+                    aria-hidden="true"
+                  />
+                  {!isCollapsed && (
+                    <>
+                      <span className="min-w-0 flex-1 truncate">{item.label}</span>
+                      {item.badge && (
+                        <Badge
+                          variant="secondary"
+                          className="h-4 min-w-4 px-1 text-[10px] font-mono tabular-nums"
+                        >
+                          {item.badge}
+                        </Badge>
+                      )}
+                    </>
+                  )}
+                </>
+              )}
+            </NavLink>
           );
+
+          if (isCollapsed) {
+            return (
+              <li key={item.href} className="flex justify-center">
+                <TooltipTrigger delay={200}>
+                  {linkContent}
+                  <Tooltip placement="right">{item.label}</Tooltip>
+                </TooltipTrigger>
+              </li>
+            );
+          }
+
+          return <li key={item.href}>{linkContent}</li>;
         })}
       </ul>
     </div>
   );
 
   return (
-    <nav className="flex-1 space-y-5 px-3 py-4" aria-label="侧边栏主导航">
+    <nav
+      className={cn(
+        "flex-1 space-y-5 py-4 overflow-y-auto transition-all duration-200",
+        isCollapsed ? "px-2" : "px-3"
+      )}
+      aria-label="侧边栏主导航"
+    >
       {renderNavGroup("核心工作台 / CORE", coreItems)}
       {renderNavGroup("系统与流水线 / PIPELINE", systemItems)}
     </nav>
@@ -187,9 +254,11 @@ function SidebarNav({ items }: { items: AdminShellNavItem[] }) {
 function UserMenu({
   user,
   onLogout,
+  isCollapsed,
 }: {
   user: { name: string; email?: string; role?: string; initials?: string };
   onLogout: () => void;
+  isCollapsed: boolean;
 }) {
   const navigate = useNavigate();
 
@@ -197,36 +266,55 @@ function UserMenu({
     <DropdownMenuTrigger>
       <Button
         variant="ghost"
-        className="w-full justify-start gap-2.5 px-2 py-2 hover:bg-muted/60 text-left"
+        className={cn(
+          "w-full hover:bg-muted/60 transition-all duration-150 active:scale-[0.98]",
+          isCollapsed
+            ? "justify-center px-0 size-9"
+            : "justify-start gap-2.5 px-2 py-2 text-left"
+        )}
         aria-label="打开用户设置与退出菜单"
       >
-        <Avatar size="sm" className="border bg-muted">
+        <Avatar size="sm" className="border bg-muted shrink-0">
           <AvatarFallback className="text-xs font-semibold">
             {user.initials}
           </AvatarFallback>
         </Avatar>
-        <div className="min-w-0 flex-1">
-          <span className="block truncate text-xs font-semibold text-foreground">
-            {user.name}
-          </span>
-          <span className="block truncate text-[10px] text-muted-foreground">
-            {user.email ?? "admin@codepaint.studio"}
-          </span>
-        </div>
-        <ChevronDown className="size-3 text-muted-foreground" />
+        {!isCollapsed && (
+          <>
+            <div className="min-w-0 flex-1">
+              <span className="block truncate text-xs font-semibold text-foreground">
+                {user.name}
+              </span>
+              <span className="block truncate text-[10px] text-muted-foreground">
+                {user.email ?? "admin@codepaint.studio"}
+              </span>
+            </div>
+            <ChevronDown className="size-3 text-muted-foreground" />
+          </>
+        )}
       </Button>
 
-      <DropdownMenu className="w-56" placement="top start">
+      <DropdownMenu
+        className="w-56"
+        placement={isCollapsed ? "right bottom" : "top start"}
+      >
         <DropdownMenuLabel>
           <span className="block text-xs font-semibold">{user.name}</span>
           <span className="text-[10px] text-muted-foreground">{user.role}</span>
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
-        <DropdownMenuItem textValue="全局设置" onAction={() => navigate("/workspace/settings")}>
+        <DropdownMenuItem
+          textValue="全局设置"
+          onAction={() => navigate("/workspace/settings")}
+        >
           <Settings className="size-3.5 mr-2" />
           工作台全局设置
         </DropdownMenuItem>
-        <DropdownMenuItem textValue="退出登录" onAction={onLogout} className="text-destructive">
+        <DropdownMenuItem
+          textValue="退出登录"
+          onAction={onLogout}
+          className="text-destructive"
+        >
           <LogOut className="size-3.5 mr-2" />
           退出登录
         </DropdownMenuItem>
@@ -245,9 +333,22 @@ export function AdminShell({
 }: AdminShellProps) {
   const navigate = useNavigate();
   const [notificationOpen, setNotificationOpen] = useState(false);
+  const [isCollapsed, setIsCollapsed] = useState(false);
 
   const authUser = useAuthStore((state) => state.user);
   const logout = useAuthStore((state) => state.logout);
+
+  // Keyboard shortcut (Cmd+B / Ctrl+B) to toggle sidebar like Apple macOS apps
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "b") {
+        e.preventDefault();
+        setIsCollapsed((v) => !v);
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, []);
 
   const user = {
     name: authUser?.name ?? "林默",
@@ -272,31 +373,66 @@ export function AdminShell({
         跳至主要内容
       </a>
 
-      {/* Desktop Persistent Refined Studio Sidebar */}
+      {/* Desktop Apple-style Fluid Persistent Sidebar */}
       <aside
-        className="fixed inset-y-0 left-0 z-40 hidden w-64 flex-col border-r border-border/70 bg-card/60 backdrop-blur-xl md:flex"
+        className={cn(
+          "fixed inset-y-0 left-0 z-40 hidden flex-col border-r border-border/70 bg-card/65 backdrop-blur-2xl transition-[width] duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] md:flex",
+          isCollapsed ? "w-[72px]" : "w-64"
+        )}
         aria-label="工作室管理导航"
       >
         {/* Brand & Workspace Switcher Header */}
         <div className="border-b border-border/60 p-4 space-y-3">
-          <ProductBrand />
-          <WorkspaceSwitcher workspaceName={workspaceName} />
+          <div className="flex items-center justify-between">
+            <ProductBrand isCollapsed={isCollapsed} />
+            {!isCollapsed && (
+              <TooltipTrigger delay={400}>
+                <Button
+                  variant="ghost"
+                  size="icon-xs"
+                  onPress={() => setIsCollapsed(true)}
+                  className="text-muted-foreground hover:text-foreground active:scale-90 transition-transform"
+                  aria-label="收起侧边栏 (⌘B)"
+                >
+                  <PanelLeftClose className="size-3.5" />
+                </Button>
+                <Tooltip>收起侧边栏 (⌘B)</Tooltip>
+              </TooltipTrigger>
+            )}
+          </div>
+          <WorkspaceSwitcher
+            workspaceName={workspaceName}
+            isCollapsed={isCollapsed}
+          />
         </div>
 
-        {/* Scrollable Nav List */}
-        <SidebarNav items={navigation} />
+        {/* Scrollable Nav List with Gliding Indicator */}
+        <SidebarNav items={navigation} isCollapsed={isCollapsed} />
 
         {/* Studio Status & User Card Footer */}
         <div className="border-t border-border/60 p-3 space-y-2.5 bg-card/30">
-          <div className="flex items-center justify-between rounded-lg border border-border/40 bg-muted/30 px-2.5 py-1.5 text-[11px] text-muted-foreground">
-            <div className="flex items-center gap-1.5">
-              <Sparkles className="size-3 text-cyan-600" />
-              <span>OCR & LLM 管线</span>
+          {!isCollapsed ? (
+            <div className="flex items-center justify-between rounded-lg border border-border/40 bg-muted/30 px-2.5 py-1.5 text-[11px] text-muted-foreground">
+              <div className="flex items-center gap-1.5">
+                <Sparkles className="size-3 text-cyan-600" />
+                <span>OCR & LLM 管线</span>
+              </div>
+              <span className="font-mono text-[10px] text-muted-foreground">ONLINE</span>
             </div>
-            <span className="font-mono text-[10px] text-muted-foreground">ONLINE</span>
-          </div>
+          ) : (
+            <TooltipTrigger delay={300}>
+              <div className="flex justify-center py-1">
+                <Sparkles className="size-3.5 text-cyan-600" />
+              </div>
+              <Tooltip placement="right">OCR & LLM 管线 ONLINE</Tooltip>
+            </TooltipTrigger>
+          )}
 
-          <UserMenu user={user} onLogout={handleLogout} />
+          <UserMenu
+            user={user}
+            onLogout={handleLogout}
+            isCollapsed={isCollapsed}
+          />
         </div>
       </aside>
 
@@ -328,10 +464,10 @@ export function AdminShell({
         </div>
       </header>
 
-      {/* Mobile Horizontal Navigation Rail (Eliminates drawer, fast tap switching) */}
+      {/* Mobile Horizontal Navigation Rail with Smooth Touch Action */}
       <nav
         aria-label="移动端工作台导航"
-        className="sticky top-14 z-20 flex gap-1 overflow-x-auto border-b border-border/60 bg-card/80 px-3 py-2 backdrop-blur-md md:hidden"
+        className="sticky top-14 z-20 flex gap-1 overflow-x-auto border-b border-border/60 bg-card/80 px-3 py-2 backdrop-blur-md md:hidden scrollbar-none"
       >
         {navigation.map((item) => {
           const Icon = item.icon;
@@ -340,12 +476,12 @@ export function AdminShell({
               key={item.href}
               to={item.href}
               className={({ isActive }) =>
-                [
-                  "flex shrink-0 items-center gap-1.5 rounded-md px-2.5 py-1.5 text-xs font-medium transition-colors",
+                cn(
+                  "flex shrink-0 items-center gap-1.5 rounded-md px-2.5 py-1.5 text-xs font-medium transition-all duration-150 active:scale-95",
                   isActive
-                    ? "bg-foreground text-background font-semibold"
-                    : "text-muted-foreground hover:bg-muted hover:text-foreground",
-                ].join(" ")
+                    ? "bg-foreground text-background font-semibold shadow-xs"
+                    : "text-muted-foreground hover:bg-muted hover:text-foreground"
+                )
               }
             >
               <Icon className="size-3.5" />
@@ -361,14 +497,36 @@ export function AdminShell({
       </nav>
 
       {/* Main Content Area Offset by Desktop Sidebar */}
-      <div className="md:pl-64 flex flex-col min-h-screen">
+      <div
+        className={cn(
+          "flex flex-col min-h-screen transition-[padding] duration-300 ease-[cubic-bezier(0.16,1,0.3,1)]",
+          isCollapsed ? "md:pl-[72px]" : "md:pl-64"
+        )}
+      >
         {/* Desktop Breadcrumb & Notifications Bar */}
         <header className="sticky top-0 z-20 hidden min-h-12 items-center justify-between border-b border-border/60 bg-background/80 px-6 backdrop-blur-md md:flex">
-          <nav aria-label="面包屑导航" className="flex items-center gap-2 text-xs">
-            <span className="text-muted-foreground">{contextLabel}</span>
-            <span className="text-muted-foreground/40">/</span>
-            <span className="font-semibold text-foreground">{pageLabel}</span>
-          </nav>
+          <div className="flex items-center gap-3">
+            {isCollapsed && (
+              <TooltipTrigger delay={400}>
+                <Button
+                  variant="ghost"
+                  size="icon-xs"
+                  onPress={() => setIsCollapsed(false)}
+                  className="text-muted-foreground hover:text-foreground active:scale-90 transition-transform"
+                  aria-label="展开侧边栏 (⌘B)"
+                >
+                  <PanelLeft className="size-3.5" />
+                </Button>
+                <Tooltip>展开侧边栏 (⌘B)</Tooltip>
+              </TooltipTrigger>
+            )}
+
+            <nav aria-label="面包屑导航" className="flex items-center gap-2 text-xs">
+              <span className="text-muted-foreground">{contextLabel}</span>
+              <span className="text-muted-foreground/40">/</span>
+              <span className="font-semibold text-foreground">{pageLabel}</span>
+            </nav>
+          </div>
 
           <div className="flex items-center gap-3">
             <TooltipTrigger delay={300}>
@@ -389,7 +547,9 @@ export function AdminShell({
             <div className="absolute right-6 top-11 z-40 w-80 rounded-xl border border-border bg-card p-4 shadow-xl">
               <div className="flex items-center justify-between pb-2 border-b">
                 <span className="text-xs font-semibold">通知中心</span>
-                <Badge variant="secondary" className="text-[10px]">3 条新动态</Badge>
+                <Badge variant="secondary" className="text-[10px]">
+                  3 条新动态
+                </Badge>
               </div>
               <div className="mt-3 space-y-2 text-xs text-muted-foreground">
                 <p className="rounded-lg border-l-2 border-emerald-500 bg-muted/30 p-2">
@@ -413,3 +573,4 @@ export function AdminShell({
 }
 
 export { DEFAULT_NAVIGATION };
+

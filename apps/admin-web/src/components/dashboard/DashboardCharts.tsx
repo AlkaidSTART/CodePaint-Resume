@@ -322,21 +322,21 @@ export function DashboardCharts() {
   }, []);
 
   return (
-    <div className="grid gap-6 xl:grid-cols-[minmax(0,1.55fr)_minmax(18rem,0.95fr)]">
+    <div className="grid gap-6 lg:grid-cols-12">
       {/* 投递趋势分析图 */}
-      <Card className="flex flex-col border shadow-sm">
-        <CardHeader className="flex flex-row items-center justify-between border-b p-4 pb-3">
-          <div>
+      <Card className="lg:col-span-7 flex flex-col border border-border/80 shadow-xs">
+        <CardHeader className="flex flex-row items-center justify-between border-b border-border/70 p-4 pb-3.5">
+          <div className="min-w-0 flex-1 pr-3">
             <CardTitle className="text-sm font-semibold tracking-tight">
               投递流转趋势与解析吞吐
             </CardTitle>
-            <p className="mt-0.5 text-xs text-muted-foreground">
+            <p className="mt-0.5 truncate text-xs text-muted-foreground">
               实时追踪新增候选人报名与后台 AI 结构化抽取完成比率
             </p>
           </div>
 
           <div
-            className="flex items-center gap-1 rounded-lg border border-border/80 bg-muted/40 p-1"
+            className="flex shrink-0 items-center gap-1 rounded-lg border border-border/80 bg-muted/40 p-1"
             role="group"
             aria-label="选择时间区间"
           >
@@ -373,13 +373,13 @@ export function DashboardCharts() {
       </Card>
 
       {/* 候选人多维分布图 */}
-      <Card className="flex flex-col border shadow-sm">
-        <CardHeader className="flex flex-row items-center justify-between border-b p-4 pb-3">
-          <div>
+      <Card className="lg:col-span-5 flex flex-col border border-border/80 shadow-xs">
+        <CardHeader className="flex flex-row items-center justify-between border-b border-border/70 p-4 pb-3.5">
+          <div className="min-w-0 flex-1 pr-3">
             <CardTitle className="text-sm font-semibold tracking-tight">
               {distributionMode === "department" ? "专业组别投递占比" : "AI 匹配评分梯队分布"}
             </CardTitle>
-            <p className="mt-0.5 text-xs text-muted-foreground">
+            <p className="mt-0.5 truncate text-xs text-muted-foreground">
               {distributionMode === "department"
                 ? "四大协同项目组候选人报名分布"
                 : "基于多模态大模型初筛的匹配评分分布"}
@@ -387,7 +387,7 @@ export function DashboardCharts() {
           </div>
 
           <div
-            className="flex items-center gap-1 rounded-lg border border-border/80 bg-muted/40 p-1"
+            className="flex shrink-0 items-center gap-1 rounded-lg border border-border/80 bg-muted/40 p-1"
             role="group"
             aria-label="切换分布图表"
           >

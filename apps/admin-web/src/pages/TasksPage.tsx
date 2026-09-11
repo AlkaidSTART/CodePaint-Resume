@@ -18,10 +18,50 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { cn } from "@/lib/utils";
 import { useAdminStore } from "../store/adminStore";
 import type { TaskRecord, TaskStatus } from "../lib/types";
+import {
+  PipelineGraphViewer,
+  DEFAULT_PIPELINE_NODES,
+  type PipelineNodeData,
+} from "@/components/pipeline/PipelineGraphViewer";
 
 gsap.registerPlugin(useGSAP);
+
+function getNodesForTask(task: TaskRecord): PipelineNodeData[] {
+  if (task.status === "completed") {
+    return DEFAULT_PIPELINE_NODES.map((n) => ({
+      ...n,
+      status: "completed",
+      latency: n.latency === "--" ? "420ms" : n.latency,
+    }));
+  }
+  if (task.status === "failed") {
+    return DEFAULT_PIPELINE_NODES.map((n, idx) => {
+      if (idx === 0) return { ...n, status: "completed" };
+      if (idx === 1)
+        return {
+          ...n,
+          status: "failed",
+          description: "多模态 OCR 版面识别超时或低置信度异常，未能定位文本块",
+          logs: [
+            "[14:20:01.100] PDF frames decoded",
+            "[14:20:05.410] Multimodal OCR worker timeout (code: E_OCR_TIMEOUT)",
+          ],
+        };
+      return { ...n, status: "pending" };
+    });
+  }
+  if (task.status === "queued") {
+    return DEFAULT_PIPELINE_NODES.map((n, idx) => ({
+      ...n,
+      status: idx === 0 ? "running" : "pending",
+      latency: idx === 0 ? "120ms..." : "--",
+    }));
+  }
+  return DEFAULT_PIPELINE_NODES;
+}
 
 export function TasksPage() {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -29,7 +69,13 @@ export function TasksPage() {
   const tasks = dashboard?.tasks ?? [];
 
   const [activeTasks, setActiveTasks] = useState<TaskRecord[]>(tasks);
+  const [selectedTaskId, setSelectedTaskId] = useState<string>(
+    tasks[0]?.id ?? "task-1"
+  );
   const [feedback, setFeedback] = useState<string | null>(null);
+
+  const selectedTask =
+    activeTasks.find((t) => t.id === selectedTaskId) ?? activeTasks[0];
 
   useGSAP(
     () => {
@@ -146,6 +192,28 @@ export function TasksPage() {
         </div>
       </div>
 
+      {/* LangGraph DAG Pipeline Visualizer */}
+      {selectedTask && (
+        <div className="anim-stat-card">
+          <PipelineGraphViewer
+            key={selectedTask.id}
+            taskTitle={selectedTask.title}
+            initialNodes={getNodesForTask(selectedTask)}
+            onComplete={() => {
+              setActiveTasks((prev) =>
+                prev.map((t) =>
+                  t.id === selectedTask.id
+                    ? { ...t, status: "completed", stage: "全链路解析归档完成" }
+                    : t
+                )
+              );
+              setFeedback(`任务 [${selectedTask.title}] 已全链路流转完成`);
+              setTimeout(() => setFeedback(null), 3000);
+            }}
+          />
+        </div>
+      )}
+
       <Card className="border shadow-sm">
         <CardHeader className="border-b p-4 pb-3">
           <div className="flex items-center justify-between">
@@ -161,37 +229,56 @@ export function TasksPage() {
 
         <CardContent className="p-0">
           <ul className="divide-y divide-border">
-            {activeTasks.map((t) => (
-              <li
-                key={t.id}
-                className="anim-task-row flex flex-col gap-3 p-4 transition-colors hover:bg-muted/20 sm:flex-row sm:items-center sm:justify-between"
-              >
-                <div className="flex items-start gap-3">
-                  <div className="mt-0.5">{getStatusIcon(t.status)}</div>
-                  <div>
-                    <p className="text-xs font-semibold text-foreground">{t.title}</p>
-                    <p className="mt-0.5 font-mono text-[11px] text-muted-foreground">
-                      阶段: {t.stage} · 更新于 {t.updatedAt}
-                    </p>
-                  </div>
-                </div>
-
-                <div className="flex items-center gap-2 self-end sm:self-auto">
-                  {getStatusBadge(t.status)}
-                  {t.status === "failed" && (
-                    <Button
-                      variant="outline"
-                      size="xs"
-                      onPress={() => retryTask(t.id)}
-                      className="gap-1 text-xs text-rose-600 hover:text-rose-700"
-                    >
-                      <RotateCw className="size-3" />
-                      重新调度
-                    </Button>
+            {activeTasks.map((t) => {
+              const isSelected = t.id === selectedTaskId;
+              return (
+                <li
+                  key={t.id}
+                  onClick={() => setSelectedTaskId(t.id)}
+                  className={cn(
+                    "anim-task-row flex cursor-pointer flex-col gap-3 p-4 transition-colors sm:flex-row sm:items-center sm:justify-between",
+                    isSelected
+                      ? "bg-accent/40 ring-1 ring-primary/20"
+                      : "hover:bg-muted/20"
                   )}
-                </div>
-              </li>
-            ))}
+                >
+                  <div className="flex items-start gap-3">
+                    <div className="mt-0.5">{getStatusIcon(t.status)}</div>
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <p className="text-xs font-semibold text-foreground">{t.title}</p>
+                        {isSelected && (
+                          <Badge variant="outline" className="text-[10px]">
+                            图谱选中
+                          </Badge>
+                        )}
+                      </div>
+                      <p className="mt-0.5 font-mono text-[11px] text-muted-foreground">
+                        阶段: {t.stage} · 更新于 {t.updatedAt}
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-2 self-end sm:self-auto">
+                    {getStatusBadge(t.status)}
+                    {t.status === "failed" && (
+                      <Button
+                        variant="outline"
+                        size="xs"
+                        onPress={(e) => {
+                          e?.continuePropagation?.();
+                          retryTask(t.id);
+                        }}
+                        className="gap-1 text-xs text-rose-600 hover:text-rose-700"
+                      >
+                        <RotateCw className="size-3" />
+                        重新调度
+                      </Button>
+                    )}
+                  </div>
+                </li>
+              );
+            })}
           </ul>
         </CardContent>
       </Card>

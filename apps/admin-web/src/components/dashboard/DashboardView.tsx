@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
+import { Link } from "react-router-dom";
 import gsap from "gsap";
 import { useGSAP } from "@gsap/react";
 import {
@@ -25,8 +26,10 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Skeleton } from "@/components/ui/skeleton";
+import { SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { cn } from "@/lib/utils";
 import { DashboardCharts } from "./DashboardCharts";
+import { PipelineGraphViewer } from "@/components/pipeline/PipelineGraphViewer";
 
 gsap.registerPlugin(useGSAP);
 
@@ -96,9 +99,13 @@ function DashboardSkeleton() {
           </div>
         ))}
       </div>
-      <div className="grid gap-6 xl:grid-cols-[minmax(0,1.5fr)_minmax(20rem,0.85fr)]">
-        <Skeleton className="h-[32rem] rounded-xl" />
-        <Skeleton className="h-[32rem] rounded-xl" />
+      <div className="grid gap-6 lg:grid-cols-12">
+        <Skeleton className="lg:col-span-7 h-80 rounded-xl" />
+        <Skeleton className="lg:col-span-5 h-80 rounded-xl" />
+      </div>
+      <div className="grid gap-6 lg:grid-cols-12">
+        <Skeleton className="lg:col-span-7 h-[28rem] rounded-xl" />
+        <Skeleton className="lg:col-span-5 h-[28rem] rounded-xl" />
       </div>
     </div>
   );
@@ -283,6 +290,7 @@ function ApplicantRowItem({
 function TaskQueueSection({ tasks }: { tasks: TaskRecord[] }) {
   const [taskList, setTaskList] = useState<TaskRecord[]>(tasks);
   const [feedback, setFeedback] = useState<string | null>(null);
+  const [inspectTask, setInspectTask] = useState<TaskRecord | null>(null);
 
   useEffect(() => {
     setTaskList(tasks);
@@ -299,17 +307,23 @@ function TaskQueueSection({ tasks }: { tasks: TaskRecord[] }) {
   };
 
   return (
-    <Card className="flex flex-col border shadow-sm">
-      <CardHeader className="border-b p-4 pb-3.5">
-        <div className="flex items-center justify-between gap-3">
-            <div>
-              <CardTitle className="text-base font-semibold tracking-tight">
-                异步解析任务流水线
-              </CardTitle>
-              <p className="mt-1 text-xs text-muted-foreground">
-                实时监控 OCR 抽取、LLM 评分与版面分析执行队列
-              </p>
-            </div>
+    <Card className="flex h-full flex-col border border-border/80 shadow-xs">
+      <CardHeader className="flex flex-row items-center justify-between border-b border-border/70 p-4 pb-3.5">
+        <div className="min-w-0 flex-1 pr-3">
+          <CardTitle className="text-sm font-semibold tracking-tight">
+            异步解析任务流水线
+          </CardTitle>
+          <p className="mt-0.5 truncate text-xs text-muted-foreground">
+            实时监控 OCR 抽取、LLM 评分与版面分析执行队列
+          </p>
+        </div>
+        <div className="flex shrink-0 items-center gap-2">
+          <Link
+            to="/workspace/tasks"
+            className="text-xs text-muted-foreground hover:text-foreground font-medium"
+          >
+            DAG 图谱大屏 →
+          </Link>
           <Badge variant="secondary" className="font-mono text-xs">
             {taskList.length} 个任务
           </Badge>
@@ -358,23 +372,53 @@ function TaskQueueSection({ tasks }: { tasks: TaskRecord[] }) {
 
                 <div className="flex items-center justify-between gap-2 pt-1 text-[11px] text-muted-foreground">
                   <span className="font-mono text-[10px]">更新于 {task.updatedAt}</span>
-                  {isFailed && (
+                  <div className="flex items-center gap-1.5">
                     <Button
-                      variant="outline"
+                      variant="ghost"
                       size="xs"
-                      onPress={() => retryTask(task)}
-                      className="gap-1 text-xs text-rose-600 hover:text-rose-700"
+                      onPress={() => setInspectTask(task)}
+                      className="h-6 gap-1 px-2 text-[11px] text-muted-foreground hover:text-foreground"
                     >
-                      <RotateCw className="size-3" />
-                      重新调度
+                      <Sparkles className="size-2.5 text-cyan-600" />
+                      节点拓扑
                     </Button>
-                  )}
+                    {isFailed && (
+                      <Button
+                        variant="outline"
+                        size="xs"
+                        onPress={() => retryTask(task)}
+                        className="gap-1 text-xs text-rose-600 hover:text-rose-700"
+                      >
+                        <RotateCw className="size-3" />
+                        重新调度
+                      </Button>
+                    )}
+                  </div>
                 </div>
               </li>
             );
           })}
         </ul>
       </CardContent>
+
+      {/* Slide-out DAG Flow Inspector for selected task */}
+      <SheetContent
+        isOpen={Boolean(inspectTask)}
+        onOpenChange={(open) => !open && setInspectTask(null)}
+        side="right"
+        className="w-[min(52rem,96vw)] overflow-y-auto p-6"
+      >
+        {inspectTask && (
+          <div className="space-y-4">
+            <SheetHeader className="border-b pb-3">
+              <SheetTitle className="text-base font-bold">
+                任务执行 DAG 图谱监控
+              </SheetTitle>
+            </SheetHeader>
+            <PipelineGraphViewer taskTitle={inspectTask.title} />
+          </div>
+        )}
+      </SheetContent>
     </Card>
   );
 }
@@ -523,45 +567,43 @@ export function DashboardView({
           </section>
 
           {/* Workbench Grid: Left stream + Right pipeline */}
-          <div className="grid gap-6 xl:grid-cols-[minmax(0,1.5fr)_minmax(20rem,0.85fr)]">
+          <div className="grid gap-6 lg:grid-cols-12">
             {/* Left: Applicant Review Queue */}
-            <Card className="dashboard-panel flex flex-col border shadow-sm" aria-labelledby="inbox-heading">
-              <CardHeader className="border-b p-4 pb-3.5">
-                <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                  <div>
-                    <CardTitle id="inbox-heading" className="text-base font-semibold tracking-tight">
-                      待处理申请流
-                    </CardTitle>
-                    <p className="mt-0.5 text-xs text-muted-foreground">
-                      共 {applicants.length} 份候选人材料等待初审评定
-                    </p>
-                  </div>
+            <Card className="lg:col-span-7 dashboard-panel flex flex-col border border-border/80 shadow-xs" aria-labelledby="inbox-heading">
+              <CardHeader className="flex flex-row items-center justify-between border-b border-border/70 p-4 pb-3.5">
+                <div className="min-w-0 flex-1 pr-3">
+                  <CardTitle id="inbox-heading" className="text-sm font-semibold tracking-tight">
+                    待处理申请流
+                  </CardTitle>
+                  <p className="mt-0.5 truncate text-xs text-muted-foreground">
+                    共 {applicants.length} 份候选人材料等待初审评定
+                  </p>
+                </div>
 
-                  {/* Filter segmented buttons */}
-                  <div
-                    className="flex flex-wrap items-center gap-1 rounded-lg border border-border/80 bg-muted/40 p-1"
-                    role="group"
-                    aria-label="按专业组别筛选"
-                  >
-                    {FILTERS.map((filter) => {
-                      const isActive = filterRole === filter.id;
-                      return (
-                        <button
-                          key={filter.id}
-                          type="button"
-                          onClick={() => onFilterChange(filter.id)}
-                          className={cn(
-                            "rounded-md px-2.5 py-1 text-xs font-medium transition-colors",
-                            isActive
-                              ? "bg-background text-foreground shadow-sm font-semibold"
-                              : "text-muted-foreground hover:text-foreground"
-                          )}
-                        >
-                          {filter.label}
-                        </button>
-                      );
-                    })}
-                  </div>
+                {/* Filter segmented buttons */}
+                <div
+                  className="flex shrink-0 items-center gap-1 rounded-lg border border-border/80 bg-muted/40 p-1"
+                  role="group"
+                  aria-label="按专业组别筛选"
+                >
+                  {FILTERS.map((filter) => {
+                    const isActive = filterRole === filter.id;
+                    return (
+                      <button
+                        key={filter.id}
+                        type="button"
+                        onClick={() => onFilterChange(filter.id)}
+                        className={cn(
+                          "rounded px-2.5 py-0.5 text-[11px] font-medium transition-colors",
+                          isActive
+                            ? "bg-background text-foreground shadow-xs font-semibold"
+                            : "text-muted-foreground hover:text-foreground"
+                        )}
+                      >
+                        {filter.label}
+                      </button>
+                    );
+                  })}
                 </div>
               </CardHeader>
 
@@ -594,7 +636,7 @@ export function DashboardView({
             </Card>
 
             {/* Right: Task Pipeline Queue */}
-            <div className="dashboard-panel">
+            <div className="lg:col-span-5 dashboard-panel">
               <TaskQueueSection tasks={dashboard.tasks} />
             </div>
           </div>

@@ -27,20 +27,17 @@ workspace:
   read:
     - '**/*'
   write:
-    - src/**
+    - apps/**
     - packages/**
-    - tests/**
-    - public/**
+    - backend/**
     - docs/**
+    - migrations/**
   approval_required:
     - package.json
-    - bun.lock
     - pnpm-lock.yaml
     - tsconfig*.json
     - vite.config.*
-    - .oxlintrc.*
     - .github/**
-    - infra/**
     - deploy/**
     - production/**
 
@@ -72,19 +69,24 @@ commands:
     - bash harness/checks/lint.sh
     - bash harness/checks/typecheck.sh
     - bash harness/checks/test.sh
+    - bash harness/checks/backend.sh
     - bash harness/checks/build.sh
     - bash harness/checks/verify.sh
-    - bun run lint
-    - bun run build
-    - bun run test
-    - bunx tsc -b --pretty false
+    - pnpm run lint
+    - pnpm run typecheck
+    - pnpm run build
+    - pnpm install
+    - go test ./...
+    - go vet ./...
+    - go build ./cmd/...
     - node
     - ruby
   approval_required:
-    - bun install
-    - bun add
+    - pnpm add
     - git commit
     - git push
+    - docker compose -f deploy/compose/docker-compose.yml up -d
+    - go get
     - production database migration
   denied:
     - rm -rf /

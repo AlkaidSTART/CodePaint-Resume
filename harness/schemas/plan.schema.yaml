@@ -31,7 +31,7 @@ properties:
   status:
     enum: [draft, planned, awaiting_approval, executing, verifying, reviewing, completed, failed, cancelled, needs_replan]
   classification:
-    required: [scope, api_impact, data_impact, security_impact, ambiguity, reversibility]
+    required: [scope, api_impact, data_impact, security_impact, ambiguity, reversibility, architecture_impact]
     properties:
       scope:
         enum: [local, module, cross-module, system]

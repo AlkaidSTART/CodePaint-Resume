@@ -3,7 +3,8 @@
 `harness` is the repository's development control plane. It defines how work is
 classified, planned, executed, verified, reviewed, and recorded. It is
 model-agnostic: `small`, `medium`, and `strong` are capability levels, not
-provider-specific model names.
+provider-specific model names. This repository is a pnpm workspace containing
+two Vite frontends, shared TypeScript packages, and a Go backend.
 
 ## Source of truth
 
@@ -25,6 +26,20 @@ provider-specific model names.
 Runtime artifacts are generated state, not policy. Policy files must not be
 rewritten by a coder task. Runtime artifacts must never contain secrets,
 credentials, complete environment files, or unnecessary source dumps.
+
+## Repository boundaries
+
+| Area | Paths | Primary commands |
+| --- | --- | --- |
+| Public frontend | `apps/public-web/` | `pnpm --filter @codepaint/public-web ...` |
+| Admin frontend | `apps/admin-web/` | `pnpm --filter @codepaint/admin-web ...` |
+| Shared packages | `packages/` | Included by frontend workspace scripts |
+| Go backend | `backend/` | `go test ./...`, `go vet ./...`, `go build ./cmd/...` |
+| Runtime dependencies | `deploy/compose/` | `make infra` when integration services are needed |
+
+The root `package.json` is the frontend aggregation boundary. The root
+`pnpm-lock.yaml` is authoritative. Do not introduce Bun commands or a Bun
+lockfile into plans, templates, permissions, or checks.
 
 ## Operating model
 
@@ -89,13 +104,16 @@ bash harness/checks/validate.sh
 bash harness/checks/lint.sh
 bash harness/checks/typecheck.sh
 bash harness/checks/test.sh
+bash harness/checks/backend.sh
 bash harness/checks/build.sh
 ```
 
 `verify.sh` runs the complete sequence. The test check intentionally fails with
-an actionable message when the project has no test script. This prevents a
-missing test suite from being reported as a passing verification result.
+an actionable message only when no repository test surface exists. At present,
+the Go backend tests are the repository test surface; frontend test coverage is
+still a documented gap.
 
 The checks are location-independent and resolve the repository root from their
 own path. Keep the repository's package-manager choice consistent with
-`package.json`; this repository uses Bun.
+`package.json`; this repository uses pnpm. Backend checks run from `backend/`
+so Go module resolution remains deterministic.

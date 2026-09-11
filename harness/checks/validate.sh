@@ -25,6 +25,7 @@ required_files=(
   "$HARNESS_DIR/checks/lint.sh"
   "$HARNESS_DIR/checks/typecheck.sh"
   "$HARNESS_DIR/checks/test.sh"
+  "$HARNESS_DIR/checks/backend.sh"
   "$HARNESS_DIR/checks/build.sh"
   "$HARNESS_DIR/checks/verify.sh"
   "$REPO_ROOT/AGENTS.md"

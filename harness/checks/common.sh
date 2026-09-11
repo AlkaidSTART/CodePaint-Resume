@@ -22,5 +22,5 @@ run_package_script() {
     printf 'Missing package script: %s\n' "$script_name" >&2
     return 1
   fi
-  bun run "$script_name"
+  pnpm run "$script_name"
 }

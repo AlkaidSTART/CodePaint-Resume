@@ -9,13 +9,18 @@ non-trivial change.
 
 ## Project facts
 
-- Stack: React 19, TypeScript, Vite, and Oxlint.
-- Package manager: Bun. Use the existing `bun.lock`; do not introduce a second
-  lockfile or switch package managers without an approved plan.
-- Application code lives under `src/`; static assets live under `public/`.
-- TypeScript project references are defined by `tsconfig.json`.
-- The project currently has no configured test script. Behavior changes must add
-  an appropriate test setup or explicitly record why tests are not feasible.
+- Stack: pnpm workspace monorepo with React 19, TypeScript, Vite, and Go/Gin.
+- Package manager: pnpm `11.17.0`; use `pnpm-lock.yaml` and do not introduce a
+  second lockfile or switch package managers without an approved plan.
+- Public frontend: `apps/public-web/`; admin frontend: `apps/admin-web/`.
+- Shared TypeScript packages live under `packages/` and are linked through the
+  workspace.
+- The backend Go module lives under `backend/`; commands are in
+  `backend/cmd/` and tests are colocated under `backend/`.
+- Repository-wide TypeScript settings are in `tsconfig.json`; frontend package
+  configs extend it and include shared package sources.
+- Configuration contracts are documented in `docs/ENV_MATRIX.md`. Never read,
+  print, commit, or modify `.env` files or credential material.
 
 ## Required workflow
 
@@ -41,7 +46,10 @@ silently.
 
 ## Editing and safety rules
 
-- Follow `harness/rules/coding.md` for TypeScript and React changes.
+- Follow `harness/rules/coding.md` for TypeScript, React, and Go changes.
+- Keep frontend changes within the relevant `apps/` or `packages/` boundary;
+  keep backend changes within `backend/` unless the plan explicitly includes
+  migrations, deployment, or documentation.
 - Never read, print, commit, or modify secrets, `.env` files, private keys, or
   credential directories.
 - Do not modify `harness/politics`, `harness/rules`, schemas, or check scripts
@@ -60,10 +68,11 @@ bash harness/checks/validate.sh
 bash harness/checks/lint.sh
 bash harness/checks/typecheck.sh
 bash harness/checks/test.sh
+bash harness/checks/backend.sh
 bash harness/checks/build.sh
 ```
 
-`bash harness/checks/verify.sh` runs the full sequence. Because this project
-does not yet define `scripts.test`, the test check reports a missing test runner
-as a verification failure rather than silently passing. Do not work around that
-failure by changing the check; add tests or record an approved exception.
+`bash harness/checks/verify.sh` runs the full sequence. `test.sh` runs the
+backend Go tests because the root package currently has no `scripts.test`.
+Frontend package `lint` scripts currently perform TypeScript checking; keep
+that repository behavior explicit until a dedicated linter is introduced.

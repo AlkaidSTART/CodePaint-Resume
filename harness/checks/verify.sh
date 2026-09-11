@@ -20,6 +20,7 @@ run_check validate "$SCRIPT_DIR/validate.sh"
 run_check lint "$SCRIPT_DIR/lint.sh"
 run_check typecheck "$SCRIPT_DIR/typecheck.sh"
 run_check test "$SCRIPT_DIR/test.sh"
+run_check backend "$SCRIPT_DIR/backend.sh"
 run_check build "$SCRIPT_DIR/build.sh"
 
 if (( failures > 0 )); then

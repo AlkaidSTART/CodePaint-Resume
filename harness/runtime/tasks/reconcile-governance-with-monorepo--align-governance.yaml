@@ -1,0 +1,93 @@
+kind: task
+schema_version: 1
+plan_id: reconcile-governance-with-monorepo
+task_id: align-governance
+title: Align governance with the monorepo
+objective: Update AGENTS.md and Harness policy, documentation, templates, schemas, and checks to match the pnpm workspace and Go backend.
+
+status: running
+owner_role: coder
+model_level: medium
+dependencies: []
+
+allowed_paths:
+  - AGENTS.md
+  - harness/**
+forbidden_paths:
+  - .env*
+  - '**/*.pem'
+  - '**/*.key'
+  - secrets/**
+  - credentials/**
+  - apps/**
+  - packages/**
+  - backend/**
+  - package.json
+  - pnpm-lock.yaml
+
+inputs:
+  context_pack_ref: harness/runtime/plans/reconcile-governance-with-monorepo.yaml
+  assumptions:
+    - The source application and dependency graph remain unchanged.
+outputs:
+  expected_files:
+    - AGENTS.md
+    - harness/README.md
+    - harness/rules/workflow.md
+    - harness/politics/permissions.yaml
+    - harness/schemas/plan.schema.yaml
+    - harness/templates/plan.yaml
+    - harness/templates/task.yaml
+    - harness/checks/common.sh
+    - harness/checks/lint.sh
+    - harness/checks/typecheck.sh
+    - harness/checks/test.sh
+    - harness/checks/backend.sh
+    - harness/checks/build.sh
+    - harness/checks/verify.sh
+  notes:
+    - Runtime evidence will be recorded after the checks complete.
+
+acceptance_criteria:
+  - id: ac-1
+    description: Repository instructions and Harness docs describe pnpm, apps/packages, backend, and protected configuration boundaries.
+    verification: Review AGENTS.md, harness/README.md, and harness/rules/workflow.md.
+  - id: ac-2
+    description: Checks execute the repository's actual frontend and backend commands.
+    verification: Run bash harness/checks/lint.sh, typecheck.sh, test.sh, backend.sh, and build.sh.
+  - id: ac-3
+    description: All Harness YAML and runtime artifacts remain valid and internally linked.
+    verification: bash harness/checks/validate.sh
+
+checks:
+  - name: harness-validate
+    command: bash harness/checks/validate.sh
+    required: true
+  - name: shell-syntax
+    command: bash -n harness/checks/*.sh
+    required: true
+  - name: lint
+    command: bash harness/checks/lint.sh
+    required: true
+  - name: typecheck
+    command: bash harness/checks/typecheck.sh
+    required: true
+  - name: test
+    command: bash harness/checks/test.sh
+    required: true
+  - name: backend
+    command: bash harness/checks/backend.sh
+    required: true
+  - name: build
+    command: bash harness/checks/build.sh
+    required: true
+
+retry_policy:
+  max_attempts: 2
+  retryable_failure_classes:
+    - transient_tooling
+    - flaky_test
+
+evidence_ref: harness/runtime/states/reconcile-governance-with-monorepo--align-governance.evidence.yaml
+created_at: 2026-09-11T00:00:00Z
+updated_at: 2026-09-11T00:00:00Z

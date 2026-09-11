@@ -4,7 +4,7 @@ These rules apply to every implementation task. Repository-specific rules in
 `AGENTS.md` and the task's plan add constraints; they do not weaken these
 defaults without an explicit review decision.
 
-## TypeScript and React
+## TypeScript, React, and Go
 
 - Use TypeScript strictness already configured by the repository.
 - Do not use `any`. Prefer `unknown` at untrusted boundaries and narrow it with
@@ -15,6 +15,10 @@ defaults without an explicit review decision.
 - Keep `noUnusedLocals` and `noUnusedParameters` clean.
 - Follow React hook rules and keep side effects explicit and localized.
 - Keep browser-facing code free of unsanitized HTML and secrets.
+- Run `gofmt` on changed Go files and preserve the module's existing error
+  handling and context propagation patterns.
+- Keep Go handlers thin; domain and persistence behavior belongs in the
+  existing service/repository boundaries.
 
 ## Forbidden by default
 
@@ -32,6 +36,8 @@ defaults without an explicit review decision.
   `camelCase` for values whose identity or meaning is local to a component.
 - Functions have explicit, narrow inputs and outputs where inference does not
   make the contract obvious.
+- Go exported identifiers use standard Go naming conventions and exported APIs
+  must have useful documentation when the package requires it.
 - Each function should have one reason to change. Extract a helper when it
   removes real duplication or makes a boundary testable.
 

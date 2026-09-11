@@ -1,0 +1,15 @@
+kind: state
+schema_version: 1
+plan_id: reconcile-governance-with-monorepo
+plan_status: executing
+active_task_id: align-governance
+
+task_statuses:
+  align-governance: running
+
+attempts:
+  align-governance: 1
+
+blockers: []
+evidence_refs: []
+updated_at: 2026-09-11T00:00:00Z

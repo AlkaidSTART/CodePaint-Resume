@@ -11,7 +11,9 @@ model_level: small
 dependencies: []
 
 allowed_paths:
-  - src/**
+  - apps/**
+  - packages/**
+  - backend/**
 forbidden_paths:
   - .env*
   - secrets/**
@@ -36,6 +38,9 @@ checks:
     required: true
   - name: typecheck
     command: bash harness/checks/typecheck.sh
+    required: true
+  - name: backend
+    command: bash harness/checks/backend.sh
     required: true
 
 retry_policy:

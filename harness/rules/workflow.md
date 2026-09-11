@@ -6,7 +6,7 @@ and a truthful completion record.
 
 ## 1. Intake and classification
 
-Write a short objective and classify the change across all six dimensions:
+Write a short objective and classify the change across all seven dimensions:
 
 ```text
 scope: local | module | cross-module | system
@@ -19,7 +19,9 @@ architecture_impact: none | possible | direct
 ```
 
 When a dimension is unknown, record it as unknown during intake and escalate
-the planner. Do not treat unknown as none.
+the planner. Do not treat unknown as none. For this repository, also identify
+whether the change crosses `apps/`, `packages/`, `backend/`, `migrations/`,
+`deploy/`, or `docs/` boundaries.
 
 ## 2. Context pack
 
@@ -27,6 +29,7 @@ Before planning, gather only the context needed for the change:
 
 - relevant files and symbols
 - existing tests and commands
+- frontend workspace scripts and backend Go commands
 - public contracts and consumers
 - constraints from `AGENTS.md` and `harness`
 - dependency, data, security, and rollback considerations
@@ -85,6 +88,8 @@ and residual risk. Strong review is mandatory for routes that require it.
 
 Only move to `completed` when acceptance criteria, required checks, and review
 evidence are all present. A model's statement that it is done is not evidence.
+For frontend changes, run the root pnpm checks. For backend changes, run the
+backend check even when no database or Redis service is required.
 
 ## 7. Failure, retry, and replanning
 

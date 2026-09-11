@@ -17,7 +17,9 @@ classification:
 scope:
   summary: What is included in this change.
   affected_paths:
-    - src/**
+    - apps/**
+    - packages/**
+    - backend/**
   excluded_paths:
     - production/**
 
@@ -28,9 +30,10 @@ context_pack:
   symbols: []
   contracts: []
   commands:
-    - bun run lint
-    - bunx tsc -b --pretty false
-    - bun run build
+    - pnpm run lint
+    - pnpm run typecheck
+    - pnpm run build
+    - bash harness/checks/backend.sh
   constraints:
     - Read AGENTS.md and applicable harness rules.
 
@@ -54,7 +57,10 @@ validation:
     - name: build
       command: bash harness/checks/build.sh
       required: true
-  required_checks: [lint, typecheck, build]
+    - name: backend
+      command: bash harness/checks/backend.sh
+      required: true
+  required_checks: [lint, typecheck, backend, build]
 
 rollback:
   required: false

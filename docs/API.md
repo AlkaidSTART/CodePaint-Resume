@@ -405,6 +405,38 @@ GET /public/recruitment/roles/:role_id
 
 返回某一招新方向的公开详情。
 
+## 4.4 获取简历预签名直传凭证 (Direct Presigned Upload)
+
+```http
+POST /public/uploads/presign
+```
+
+权限：`guest`、`user`
+
+为保障 API 服务性能与并发能力，大文件（PDF/DOCX）**严禁由 Go API 内存代理中转**，前端必须在报名前请求专用预签名凭证，直传至私有对象存储临时空间：
+
+请求：
+```json
+{
+  "filename": "resume_zhangsan.pdf",
+  "content_type": "application/pdf",
+  "size": 2451024
+}
+```
+
+响应：`200 OK`
+```json
+{
+  "data": {
+    "upload_url": "https://storage.example.com/resumeflow-resumes/temp/01J...pdf?X-Amz-Signature=...",
+    "object_key": "applications/temp/01J8K2MN3P4Q5R6S7T8U9V0W1.pdf",
+    "expires_at": "2026-09-06T12:15:00Z"
+  },
+  "request_id": "req_01J..."
+}
+```
+*安全要求*：前端直传 S3 成功后，将 `object_key` 传入报名接口；服务端会校验该 Key 的真实存在性、MIME 头及文件大小。
+
 ---
 
 # 5. 普通用户报名接口
@@ -417,7 +449,7 @@ POST /applications
 
 权限：`user`、`recruiter`
 
-请求建议使用 `multipart/form-data`，文本字段和文件一起提交。
+推荐使用 `application/json` 传入已直传对象存储的 `object_key`；为兼容单体测试环境亦支持 `multipart/form-data`。
 
 字段：
 
@@ -426,13 +458,31 @@ POST /applications
 | `campaign_id` | string | 是 | 招新周期 ID |
 | `intended_role_id` | string | 是 | 意向方向 ID |
 | `name` | string | 是 | 姓名或昵称 |
-| `contact` | string | 是 | 联系方式 |
+| `contact` | string | 是 | 联系方式 (邮箱或手机) |
 | `student_status` | string | 否 | 年级或当前状态 |
 | `introduction` | string | 是 | 自我介绍 |
 | `portfolio_url` | string | 否 | 作品链接 |
 | `github_url` | string | 否 | GitHub 链接 |
 | `expectation` | string | 否 | 对 CodePaint 的期待 |
-| `file` | binary | 否 | 简历或补充材料 |
+| `file` | object | 否 | 包含直传 `object_key`、`filename`、`size`、`sha256` |
+
+请求 JSON 示例：
+```json
+{
+  "campaign_id": "camp_2026_autumn",
+  "intended_role_id": "role_fullstack",
+  "name": "张三",
+  "contact": "zhangsan@example.com",
+  "student_status": "大二",
+  "introduction": "热爱开源与 Agent 开发",
+  "file": {
+    "object_key": "applications/temp/01J8K2MN3P4Q5R6S7T8U9V0W1.pdf",
+    "filename": "zhangsan_resume.pdf",
+    "size": 2451024,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  }
+}
+```
 
 响应：`201 Created`
 
@@ -844,6 +894,95 @@ GET /workspace/applicants/:applicant_id/match-analysis
 
 返回命中技能、缺失要求、经验依据、AI 摘要和规则分。结果必须标明是辅助判断，不能表达为自动录取结论。
 
+## 9.5 获取准则评估与原文佐证 (Criteria & Evidence)
+
+```http
+GET /workspace/applicants/:applicant_id/criteria-evaluations
+```
+
+权限：`recruiter`
+
+返回该候选人针对所报岗位的 Ashby 范式评估详情，包含原文页码及引文，便于前端直接定位高亮：
+
+响应：`200 OK`
+```json
+{
+  "data": {
+    "applicant_id": "app_01J...",
+    "position_id": "role_fullstack",
+    "calculated_score": 85.0,
+    "review_priority": "high",
+    "evaluations": [
+      {
+        "criterion_id": "project_experience",
+        "criterion_name": "完整全栈项目交付经验",
+        "weight": 35,
+        "ai_status": "met",
+        "confidence": 0.96,
+        "reason": "具备从 0 到 1 架构与部署企业级中台经验",
+        "evidence": [
+          { "page": 2, "quote": "独立负责并主导高并发调度网关重构，日均承载百万请求" }
+        ],
+        "is_overridden": false,
+        "human_status": null
+      },
+      {
+        "criterion_id": "agent_framework",
+        "criterion_name": "AI Agent / LLM 应用开发",
+        "weight": 25,
+        "ai_status": "partial",
+        "confidence": 0.82,
+        "reason": "接触过 LangChain，但缺乏自主多 Agent 协作编排实战",
+        "evidence": [
+          { "page": 1, "quote": "基于 LangChain 完成本地文档问答知识库 Demo" }
+        ],
+        "is_overridden": true,
+        "human_status": "met",
+        "override_reason": "面试官核实其 GitHub 个人项目已有完整 Tool-Calling 与 Eval 闭环"
+      }
+    ],
+    "suggested_interview_questions": [
+      "请展开讲讲高并发调度网关重构中遇到的锁竞争与惊群问题如何解决？",
+      "在本地文档问答知识库中，针对长文档分块与召回准确率做了哪些工程优化？"
+    ]
+  },
+  "request_id": "req_01J..."
+}
+```
+
+## 9.6 审核员人工覆写准则判定 (Human Override)
+
+```http
+POST /workspace/applicants/:applicant_id/criteria-overrides
+```
+
+权限：`recruiter`
+
+请求：
+```json
+{
+  "criterion_id": "agent_framework",
+  "override_status": "met",
+  "reason": "面试官核实其 GitHub 个人项目已有完整 Tool-Calling 与 Eval 闭环"
+}
+```
+
+响应：`200 OK`
+```json
+{
+  "data": {
+    "applicant_id": "app_01J...",
+    "criterion_id": "agent_framework",
+    "old_status": "partial",
+    "new_status": "met",
+    "recalculated_score": 97.5,
+    "overridden_by": "user_01J...",
+    "overridden_at": "2026-09-06T12:30:00Z"
+  },
+  "request_id": "req_01J..."
+}
+```
+
 ---
 
 # 10. 任务接口
@@ -1155,3 +1294,169 @@ TDD 中已有的基础接口可以映射为：
 ```
 
 这样既保留 TDD 中的领域接口，又通过 `/workspace` 明确招新成员的权限边界。实现时可以选择保留旧路径作为内部别名，但对前端公开的 API 建议统一使用本文档路径。
+
+---
+
+# 17. 插件与通知配置接口 (Plugins API)
+
+## 17.1 获取已挂载插件状态
+
+```http
+GET /workspace/plugins
+```
+
+响应：
+
+```json
+{
+  "data": [
+    {
+      "name": "feishu",
+      "display_name": "飞书录取通知与拉群机器人",
+      "enabled": true,
+      "config_masked": {
+        "webhook_url": "https://open.feishu.cn/open-apis/bot/v2/hook/****",
+        "has_secret": true
+      },
+      "last_delivery_at": "2026-09-06T12:00:00Z"
+    }
+  ],
+  "request_id": "req_01J..."
+}
+```
+
+## 17.2 测试插件连通性
+
+```http
+POST /workspace/plugins/feishu/test
+```
+
+请求：
+
+```json
+{
+  "test_message": "CodePaint ResumeFlow 连通性测试消息"
+}
+```
+
+响应：
+
+```json
+{
+  "data": {
+    "status": "delivered",
+    "latency_ms": 156
+  },
+  "request_id": "req_01J..."
+}
+```
+
+---
+
+# 18. 系统动态配置接口
+
+管理后台热修改运行时系统参数，配置修改后通过 Redis Pub/Sub 广播刷新 Worker 内存，无需重启后端服务。
+
+## 18.1 获取系统配置
+
+```http
+GET /workspace/settings
+```
+
+权限：`recruiter`
+
+响应：`200 OK`
+```json
+{
+  "data": {
+    "ai_concurrency": 5,
+    "ai_rpm_limit": 30,
+    "ai_task_timeout_seconds": 120,
+    "max_resume_size_mb": 20,
+    "vision_fallback_enabled": true,
+    "imap_sync_interval_seconds": 120,
+    "smtp_concurrency": 2,
+    "resume_retention_days": 180
+  },
+  "request_id": "req_01J..."
+}
+```
+
+## 18.2 更新系统配置
+
+```http
+PATCH /workspace/settings
+```
+
+权限：`recruiter`
+
+请求：
+```json
+{
+  "ai_concurrency": 8,
+  "ai_rpm_limit": 45,
+  "resume_retention_days": 90
+}
+```
+
+响应：`200 OK`
+```json
+{
+  "data": {
+    "updated_keys": ["ai_concurrency", "ai_rpm_limit", "resume_retention_days"],
+    "updated_at": "2026-09-06T12:35:00Z"
+  },
+  "request_id": "req_01J..."
+}
+```
+
+---
+
+# 19. 任务队列监控与自愈巡检接口
+
+## 19.1 获取当前异步队列健康与积压情况
+
+```http
+GET /workspace/queues
+```
+
+权限：`recruiter`
+
+响应：`200 OK`
+```json
+{
+  "data": {
+    "queues": [
+      { "name": "extract_text", "active": 3, "pending": 12, "failed": 1 },
+      { "name": "ai_review", "active": 2, "pending": 8, "failed": 0 },
+      { "name": "smtp_mail", "active": 1, "pending": 2, "failed": 3 }
+    ],
+    "worker_count": 4,
+    "outbox_pending_events": 0
+  },
+  "request_id": "req_01J..."
+}
+```
+
+## 19.2 触发自愈补偿巡检 (Trigger Self-Healing Reconciliation)
+
+```http
+POST /workspace/reconciliation/run
+```
+
+权限：`recruiter`
+
+系统主动扫描处于 `processing_status != 'ready'` 且无活跃 Asynq Job 的掉线任务，重新推送至队列执行：
+
+响应：`200 OK`
+```json
+{
+  "data": {
+    "scanned_count": 142,
+    "re_enqueued_count": 3,
+    "stale_tasks": ["app_01J8K...", "app_01J9A..."]
+  },
+  "request_id": "req_01J..."
+}
+```
+

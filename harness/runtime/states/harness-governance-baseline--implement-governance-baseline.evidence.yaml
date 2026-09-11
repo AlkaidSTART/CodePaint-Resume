@@ -1,0 +1,79 @@
+kind: evidence
+schema_version: 1
+plan_id: harness-governance-baseline
+task_id: implement-governance-baseline
+attempt: 1
+status: passed
+
+changed_files:
+  - AGENTS.md
+  - harness/README.md
+  - harness/checks/build.sh
+  - harness/checks/common.sh
+  - harness/checks/lint.sh
+  - harness/checks/test.sh
+  - harness/checks/typecheck.sh
+  - harness/checks/validate.sh
+  - harness/checks/verify.sh
+  - harness/politics/models.yaml
+  - harness/politics/permissions.yaml
+  - harness/politics/routing.yaml
+  - harness/politics/state-machine.yaml
+  - harness/rules/coding.md
+  - harness/rules/workflow.md
+  - harness/runtime/README.md
+  - harness/runtime/plans/harness-governance-baseline.yaml
+  - harness/runtime/tasks/harness-governance-baseline--implement-governance-baseline.yaml
+  - harness/runtime/states/harness-governance-baseline.yaml
+  - harness/runtime/states/harness-governance-baseline--implement-governance-baseline.evidence.yaml
+  - harness/schemas/evidence.schema.yaml
+  - harness/schemas/plan.schema.yaml
+  - harness/schemas/state.schema.yaml
+  - harness/schemas/task.schema.yaml
+  - harness/templates/evidence.yaml
+  - harness/templates/plan.yaml
+  - harness/templates/state.yaml
+  - harness/templates/task.yaml
+
+commands:
+  - command: bash harness/checks/validate.sh
+    exit_code: 0
+    result: "Passed: YAML, route references, state transitions, templates, and runtime artifact kinds."
+    output_ref: null
+  - command: bash -n harness/checks/*.sh
+    exit_code: 0
+    result: "Passed: shell syntax."
+    output_ref: null
+  - command: bash harness/checks/lint.sh
+    exit_code: 0
+    result: "Passed: oxlint."
+    output_ref: null
+  - command: bash harness/checks/typecheck.sh
+    exit_code: 0
+    result: "Passed: TypeScript project references."
+    output_ref: null
+  - command: bash harness/checks/test.sh
+    exit_code: 1
+    result: "Expected failure: package.json has no scripts.test; the check fails closed."
+    output_ref: null
+  - command: bash harness/checks/build.sh
+    exit_code: 0
+    result: "Passed: Vite production build."
+    output_ref: null
+
+tests:
+  added: []
+  executed: []
+  gaps:
+    - No test runner is configured in package.json; add one in a separate approved plan.
+
+review:
+  reviewer_role: reviewer
+  decision: approved_with_risk
+  findings:
+    - The governance baseline is complete, but application behavior remains untested until a test runner is added.
+
+remaining_risks:
+  - No automated application test suite.
+  - A runtime consumer still needs to enforce permissions and state transitions.
+recorded_at: 2026-09-11T14:25:54+08:00

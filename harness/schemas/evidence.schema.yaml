@@ -1,0 +1,46 @@
+kind: evidence_schema
+schema_version: 1
+
+required:
+  - kind
+  - schema_version
+  - plan_id
+  - task_id
+  - attempt
+  - status
+  - changed_files
+  - commands
+  - tests
+  - review
+  - remaining_risks
+  - recorded_at
+
+properties:
+  kind:
+    const: evidence
+  schema_version:
+    const: 1
+  status:
+    enum: [passed, failed, blocked, needs_replan]
+  attempt:
+    type: integer
+    minimum: 1
+  changed_files:
+    type: list
+  commands:
+    type: list
+    item_required: [command, exit_code, result]
+  tests:
+    required: [added, executed, gaps]
+  review:
+    required: [reviewer_role, decision, findings]
+  remaining_risks:
+    type: list
+  recorded_at:
+    type: iso8601_timestamp
+
+invariants:
+  - every command has an integer exit_code
+  - passed evidence has zero required-check failures
+  - completed tasks have review decision approved or approved_with_risk
+  - failed attempts are preserved and never overwritten

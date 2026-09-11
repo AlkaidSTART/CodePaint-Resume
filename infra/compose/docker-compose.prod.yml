@@ -1,0 +1,109 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-resumeflow}
+      POSTGRES_USER: ${POSTGRES_USER:-resumeflow}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD is required}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 12
+
+  redis:
+    image: redis:7-alpine
+    command: ["redis-server", "/usr/local/etc/redis/redis.conf"]
+    volumes:
+      - redis_data:/data
+      - ../redis/redis.conf:/usr/local/etc/redis/redis.conf:ro
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 12
+
+  migrate:
+    image: ${IMAGE_API:-ghcr.io/codepaint-studio/resumeflow-api:latest}
+    entrypoint: ["/app/migrate"]
+    environment:
+      DATABASE_URL: ${DATABASE_URL:?DATABASE_URL is required}
+      MIGRATIONS_DIR: /workspace/migrations
+    volumes:
+      - ../../migrations:/workspace/migrations:ro
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: "no"
+
+  api:
+    image: ${IMAGE_API:-ghcr.io/codepaint-studio/resumeflow-api:latest}
+    environment:
+      PORT: "8080"
+      ALLOW_DEMO_AUTH: ${ALLOW_DEMO_AUTH:-false}
+      DATABASE_URL: ${DATABASE_URL:?DATABASE_URL is required}
+      REDIS_URL: ${REDIS_URL:-redis://redis:6379/0}
+      DEFAULT_WORKSPACE_ID: ${DEFAULT_WORKSPACE_ID:?DEFAULT_WORKSPACE_ID is required}
+      COOKIE_SECURE: ${COOKIE_SECURE:-true}
+      STORAGE_ENDPOINT: ${STORAGE_ENDPOINT:?STORAGE_ENDPOINT is required}
+      STORAGE_ACCESS_KEY: ${STORAGE_ACCESS_KEY:?STORAGE_ACCESS_KEY is required}
+      STORAGE_SECRET_KEY: ${STORAGE_SECRET_KEY:?STORAGE_SECRET_KEY is required}
+      STORAGE_BUCKET: ${STORAGE_BUCKET:-resumeflow}
+    expose:
+      - "8080"
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:8080/healthz >/dev/null"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+
+  worker:
+    image: ${IMAGE_WORKER:-ghcr.io/codepaint-studio/resumeflow-worker:latest}
+    environment:
+      REDIS_URL: ${REDIS_URL:-redis://redis:6379/0}
+      DEFAULT_WORKSPACE_ID: ${DEFAULT_WORKSPACE_ID:?DEFAULT_WORKSPACE_ID is required}
+    depends_on:
+      redis:
+        condition: service_healthy
+
+  web:
+    image: ${IMAGE_WEB:-ghcr.io/codepaint-studio/resumeflow-web:latest}
+    ports:
+      - "${WEB_PORT:-80}:80"
+    depends_on:
+      api:
+        condition: service_healthy
+
+  prometheus:
+    image: prom/prometheus:v3.5.0
+    profiles: [monitoring]
+    volumes:
+      - ../monitoring/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus_data:/prometheus
+    depends_on:
+      api:
+        condition: service_healthy
+
+  grafana:
+    image: grafana/grafana:12.1.1
+    profiles: [monitoring]
+    ports:
+      - "${GRAFANA_PORT:-3001}:3000"
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ../monitoring/grafana:/etc/grafana/provisioning:ro
+    depends_on:
+      - prometheus
+
+volumes:
+  postgres_data:
+  redis_data:
+  prometheus_data:
+  grafana_data:

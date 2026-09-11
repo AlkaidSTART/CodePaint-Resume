@@ -1,0 +1,159 @@
+kind: plan
+schema_version: 1
+plan_id: reconcile-governance-with-monorepo
+revision: 1
+title: Align Harness governance with the pnpm and Go monorepo
+objective: Make the Harness control plane describe and verify the repository that actually exists.
+
+classification:
+  scope: system
+  api_impact: none
+  data_impact: none
+  security_impact: possible
+  ambiguity: low
+  reversibility: easy
+  architecture_impact: possible
+
+scope:
+  summary: Correct repository facts, path permissions, runtime guidance, templates, and validation commands for the pnpm workspace and Go backend.
+  affected_paths:
+    - AGENTS.md
+    - harness/**
+  excluded_paths:
+    - apps/**
+    - packages/**
+    - backend/**
+    - docs/**
+    - package.json
+    - pnpm-lock.yaml
+    - deploy/**
+
+context_pack:
+  files:
+    - path: package.json
+      reason: Root scripts and package manager declaration.
+    - path: pnpm-workspace.yaml
+      reason: Workspace package boundaries.
+    - path: apps/*/package.json
+      reason: Frontend build, lint, and typecheck scripts.
+    - path: backend/go.mod
+      reason: Go module and backend toolchain boundary.
+    - path: backend/**/**/*_test.go
+      reason: Existing backend test surface.
+    - path: Makefile
+      reason: Canonical backend and local infrastructure commands.
+    - path: harness/politics/**
+      reason: Existing routing, permission, and state policy.
+    - path: harness/checks/**
+      reason: Existing verification entry points.
+  symbols: []
+  contracts:
+    - pnpm@11.17.0 is the package manager and pnpm-lock.yaml is authoritative.
+    - Frontend code is under apps/* and shared packages are under packages/*.
+    - Backend code is a Go module under backend/ with existing Go tests.
+    - Secrets and complete environment files remain outside the readable governance context.
+  commands:
+    - bash harness/checks/validate.sh
+    - bash harness/checks/lint.sh
+    - bash harness/checks/typecheck.sh
+    - bash harness/checks/test.sh
+    - bash harness/checks/build.sh
+    - bash harness/checks/backend.sh
+  constraints:
+    - Do not modify application source, dependencies, lockfiles, policy schemas outside this plan, or secrets.
+    - Preserve prior runtime evidence and do not rewrite completed baseline history.
+
+assumptions:
+  - The explicit user request approves this governance and agent-instruction change.
+  - pnpm, Go, and Ruby are available in the development environment.
+  - The backend test suite is the repository's currently available automated test suite.
+
+open_questions: []
+risks:
+  - id: frontend-lint-is-typecheck
+    summary: Frontend package lint scripts currently invoke TypeScript rather than a dedicated linter.
+    mitigation: Keep the existing package scripts as the source of truth and document the limitation.
+    owner: repository-maintainer
+  - id: backend-runtime-dependencies
+    summary: Some backend integration paths may require PostgreSQL or Redis when exercised beyond unit tests.
+    mitigation: Keep focused Go tests dependency-free and use compose only for integration work.
+    owner: repository-maintainer
+  - id: policy-enforcement
+    summary: Harness files are contracts and scripts, not a separate enforcement daemon.
+    mitigation: Make checks fail closed and record evidence in runtime state.
+    owner: repository-maintainer
+
+acceptance_criteria:
+  - id: ac-1
+    description: AGENTS.md documents the real pnpm workspace, frontend applications, shared packages, Go backend, secrets boundary, and verification commands.
+    verification: Inspect AGENTS.md and confirm no Bun-only or src/public-only repository claims remain.
+  - id: ac-2
+    description: Harness permissions, rules, README, and runtime guidance cover apps, packages, backend, docs, migrations, and deploy boundaries.
+    verification: Inspect the relevant Harness policy files and run bash harness/checks/validate.sh.
+  - id: ac-3
+    description: Harness checks use pnpm for frontend scripts and include backend Go validation without requiring a root test script.
+    verification: Run shell syntax, frontend, backend, and full verification checks.
+  - id: ac-4
+    description: Schemas and templates require the complete classification and truthful task/evidence linkage.
+    verification: Run harness validation against all runtime YAML artifacts.
+
+validation:
+  commands:
+    - name: harness-validate
+      command: bash harness/checks/validate.sh
+      required: true
+    - name: shell-syntax
+      command: bash -n harness/checks/*.sh
+      required: true
+    - name: lint
+      command: bash harness/checks/lint.sh
+      required: true
+    - name: typecheck
+      command: bash harness/checks/typecheck.sh
+      required: true
+    - name: test
+      command: bash harness/checks/test.sh
+      required: true
+    - name: backend
+      command: bash harness/checks/backend.sh
+      required: true
+    - name: build
+      command: bash harness/checks/build.sh
+      required: true
+  required_checks: [harness-validate, shell-syntax, lint, typecheck, test, backend, build]
+
+rollback:
+  required: true
+  strategy: Revert only the files changed by this governance plan as one reviewed policy/documentation change; preserve unrelated worktree changes and prior runtime evidence.
+  trigger: Harness validation or repository verification becomes less accurate, or the declared scope cannot be enforced.
+
+route:
+  planner: strong
+  coder: medium
+  reviewer: strong
+  security: strong
+  approval: required
+  rollback_required: true
+
+approvals:
+  required: true
+  status: approved
+  actor: user-request
+  requested_at: 2026-09-11T00:00:00Z
+  decided_at: 2026-09-11T00:00:00Z
+  note: Explicit user request to explore the project and improve harness plus AGENTS.md.
+
+model_assignments:
+  planner: strong
+  implementation: medium
+  review: strong
+  security: strong
+
+task_ids:
+  - align-governance
+
+task_dependencies: {}
+
+status: completed
+created_at: 2026-09-11T00:00:00Z
+updated_at: 2026-09-11T00:00:00Z

@@ -28,7 +28,12 @@ bin/
 
 # Local infrastructure data
 deploy/compose/data/
+infra/backups/
 *.log
 
 # Keep product and engineering documentation versioned.
 !docs/*.md
+plan/*
+.harness/
+harness/*
+.claude/*

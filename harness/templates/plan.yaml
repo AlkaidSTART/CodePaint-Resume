@@ -1,0 +1,98 @@
+kind: plan
+schema_version: 1
+plan_id: replace-with-lowercase-kebab-case
+revision: 1
+title: Replace with a concise title
+objective: Describe the user-visible or engineering outcome.
+
+classification:
+  scope: module
+  api_impact: none
+  data_impact: none
+  security_impact: none
+  ambiguity: low
+  reversibility: easy
+  architecture_impact: none
+
+scope:
+  summary: What is included in this change.
+  affected_paths:
+    - apps/**
+    - packages/**
+    - backend/**
+  excluded_paths:
+    - production/**
+
+context_pack:
+  files:
+    - path: src/example.ts
+      reason: Existing implementation boundary.
+  symbols: []
+  contracts: []
+  commands:
+    - pnpm run lint
+    - pnpm run typecheck
+    - pnpm run build
+    - bash harness/checks/backend.sh
+  constraints:
+    - Read AGENTS.md and applicable harness rules.
+
+assumptions: []
+open_questions: []
+risks: []
+
+acceptance_criteria:
+  - id: ac-1
+    description: State the observable result.
+    verification: Name the test, command, or review that proves it.
+
+validation:
+  commands:
+    - name: lint
+      command: bash harness/checks/lint.sh
+      required: true
+    - name: typecheck
+      command: bash harness/checks/typecheck.sh
+      required: true
+    - name: build
+      command: bash harness/checks/build.sh
+      required: true
+    - name: backend
+      command: bash harness/checks/backend.sh
+      required: true
+  required_checks: [lint, typecheck, backend, build]
+
+rollback:
+  required: false
+  strategy: Revert the focused change if verification fails.
+  trigger: Any unresolved regression or failed required check.
+
+route:
+  planner: medium
+  coder: small
+  reviewer: medium
+  security: null
+  approval: review_required
+  compatibility_review_required: false
+
+approvals:
+  required: false
+  status: not_required
+  actor: null
+  requested_at: null
+  decided_at: null
+  note: No approval required for this route.
+
+model_assignments:
+  planner: strong
+  implementation: small
+  review: medium
+
+task_ids:
+  - implement-change
+
+task_dependencies: {}
+
+status: draft
+created_at: 2026-09-11T00:00:00Z
+updated_at: 2026-09-11T00:00:00Z

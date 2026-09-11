@@ -1,0 +1,45 @@
+kind: state_schema
+schema_version: 1
+
+required:
+  - kind
+  - schema_version
+  - plan_id
+  - plan_status
+  - active_task_id
+  - task_statuses
+  - attempts
+  - blockers
+  - evidence_refs
+  - updated_at
+
+properties:
+  kind:
+    const: state
+  schema_version:
+    const: 1
+  plan_status:
+    enum: [draft, planned, awaiting_approval, executing, verifying, reviewing, completed, failed, cancelled, needs_replan]
+  active_task_id:
+    type: string_or_null
+  task_statuses:
+    type: map
+    value_enum: [pending, ready, running, blocked, verifying, reviewing, completed, failed, cancelled, needs_replan]
+  attempts:
+    type: map
+    value_type: integer
+    minimum: 0
+  blockers:
+    type: list
+    item_required: [id, summary, owner, next_action]
+  evidence_refs:
+    type: list
+    item_type: repository_relative_path
+  updated_at:
+    type: iso8601_timestamp
+
+invariants:
+  - plan_status cannot be completed while any task is incomplete
+  - active_task_id is null in terminal plan states
+  - every blocker has a next action
+  - state updates preserve prior evidence

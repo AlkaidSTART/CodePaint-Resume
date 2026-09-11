@@ -1,0 +1,54 @@
+kind: task
+schema_version: 1
+plan_id: replace-with-plan-id
+task_id: implement-change
+title: Implement the focused change
+objective: State the one outcome this task owns.
+
+status: pending
+owner_role: coder
+model_level: small
+dependencies: []
+
+allowed_paths:
+  - apps/**
+  - packages/**
+  - backend/**
+forbidden_paths:
+  - .env*
+  - secrets/**
+  - production/**
+
+inputs:
+  context_pack_ref: harness/runtime/plans/replace-with-plan-id.yaml
+  assumptions: []
+outputs:
+  expected_files:
+    - src/example.ts
+  notes: []
+
+acceptance_criteria:
+  - id: ac-1
+    description: State the task-level result.
+    verification: State how it will be checked.
+
+checks:
+  - name: lint
+    command: bash harness/checks/lint.sh
+    required: true
+  - name: typecheck
+    command: bash harness/checks/typecheck.sh
+    required: true
+  - name: backend
+    command: bash harness/checks/backend.sh
+    required: true
+
+retry_policy:
+  max_attempts: 2
+  retryable_failure_classes:
+    - transient_tooling
+    - flaky_test
+
+evidence_ref: harness/runtime/states/replace-with-plan-id--implement-change.evidence.yaml
+created_at: 2026-09-11T00:00:00Z
+updated_at: 2026-09-11T00:00:00Z

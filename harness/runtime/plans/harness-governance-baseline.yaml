@@ -1,0 +1,138 @@
+kind: plan
+schema_version: 1
+plan_id: harness-governance-baseline
+revision: 1
+title: Establish the Harness governance baseline
+objective: Turn the repository Harness into an auditable plan-and-execute control plane and document its use for repository agents.
+
+classification:
+  scope: system
+  api_impact: none
+  data_impact: none
+  security_impact: possible
+  ambiguity: low
+  reversibility: moderate
+  architecture_impact: direct
+
+scope:
+  summary: Add governance policies, schemas, templates, checks, workflow guidance, and root agent instructions.
+  affected_paths:
+    - AGENTS.md
+    - harness/**
+  excluded_paths:
+    - src/**
+    - public/**
+    - package.json
+    - bun.lock
+
+context_pack:
+  files:
+    - path: package.json
+      reason: Confirm the package manager and available scripts.
+    - path: tsconfig.json
+      reason: Confirm the TypeScript project entry point.
+    - path: harness/politics/**
+      reason: Existing model, routing, and permission policy to extend.
+    - path: harness/checks/**
+      reason: Existing verification entry points to make executable and reliable.
+  symbols: []
+  contracts:
+    - The repository uses Bun and currently has no scripts.test.
+    - Existing source code must remain unchanged by this governance task.
+  commands:
+    - bash harness/checks/validate.sh
+    - bash harness/checks/lint.sh
+    - bash harness/checks/typecheck.sh
+    - bash harness/checks/test.sh
+    - bash harness/checks/build.sh
+  constraints:
+    - Do not read or modify secrets.
+    - Keep the control plane path as harness/.
+    - Test absence must fail closed and be recorded as a known risk.
+
+assumptions:
+  - The user explicitly approved this policy and documentation change.
+  - Runtime artifacts are repository-relative YAML files.
+
+open_questions: []
+risks:
+  - id: no-test-runner
+    summary: The project has no package.json scripts.test.
+    mitigation: The test check fails explicitly; add a test runner in a separate approved plan.
+    owner: repository-maintainer
+  - id: policy-adoption
+    summary: The policies require a runner or agent to enforce path and state rules.
+    mitigation: Keep schemas and checks machine-readable and treat violations as blocking.
+    owner: repository-maintainer
+
+acceptance_criteria:
+  - id: ac-1
+    description: Harness policies define model roles, risk routing, permissions, and state transitions.
+    verification: Inspect harness/politics/*.yaml and run harness/checks/validate.sh.
+  - id: ac-2
+    description: Plan, task, state, and evidence contracts and templates exist.
+    verification: Inspect harness/schemas/*.yaml and harness/templates/*.yaml; validate YAML.
+  - id: ac-3
+    description: Repository agent instructions use the harness workflow and standard AGENTS.md naming.
+    verification: Inspect AGENTS.md and confirm no legacy .harness references remain.
+  - id: ac-4
+    description: Lint, typecheck, and build pass while the missing test runner is reported explicitly.
+    verification: Run the three passing checks and confirm harness/checks/test.sh exits non-zero with an actionable message.
+
+validation:
+  commands:
+    - name: harness-validate
+      command: bash harness/checks/validate.sh
+      required: true
+    - name: shell-syntax
+      command: bash -n harness/checks/*.sh
+      required: true
+    - name: lint
+      command: bash harness/checks/lint.sh
+      required: true
+    - name: typecheck
+      command: bash harness/checks/typecheck.sh
+      required: true
+    - name: test
+      command: bash harness/checks/test.sh
+      required: false
+    - name: build
+      command: bash harness/checks/build.sh
+      required: true
+  required_checks: [harness-validate, shell-syntax, lint, typecheck, build]
+
+rollback:
+  required: true
+  strategy: Revert the harness and AGENTS.md changes as one reviewed policy change.
+  trigger: Harness validation becomes invalid or agent execution can no longer determine safe scope.
+
+route:
+  planner: strong
+  coder: medium
+  reviewer: strong
+  security: strong
+  approval: required
+  compatibility_review_required: false
+
+approvals:
+  required: true
+  status: approved
+  actor: user-request
+  requested_at: 2026-09-11T14:25:54+08:00
+  decided_at: 2026-09-11T14:25:54+08:00
+  note: Explicit user request to complete the Harness and AGENTS.md.
+
+model_assignments:
+  planner: strong
+  implementation: medium
+  review: strong
+  security: strong
+
+task_ids:
+  - implement-governance-baseline
+
+task_dependencies: {}
+
+status: completed
+created_at: 2026-09-11T14:25:54+08:00
+updated_at: 2026-09-11T14:25:54+08:00

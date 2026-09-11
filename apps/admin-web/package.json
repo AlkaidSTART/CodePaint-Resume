@@ -10,16 +10,12 @@
     "lint": "tsc --noEmit"
   },
   "dependencies": {
-    "@codepaint/api-client": "workspace:*",
-    "@codepaint/auth-client": "workspace:*",
-    "@codepaint/types": "workspace:*",
-    "@codepaint/ui": "workspace:*",
-    "@codepaint/utils": "workspace:*",
     "@vitejs/plugin-react": "^4.7.0",
     "react": "^19.2.8",
     "react-dom": "^19.2.8",
     "react-router-dom": "^7.18.3",
-    "vite": "^6.4.3"
+    "vite": "^6.4.3",
+    "zustand": "^5.0.15"
   },
   "devDependencies": {
     "@tailwindcss/vite": "^4.3.3",

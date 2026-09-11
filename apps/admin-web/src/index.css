@@ -1,10 +1,10 @@
 @import "tailwindcss";
 
 @theme {
-  --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
-  --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  --font-sans: "Avenir Next", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
 
-  --color-workspace: #f5f7f7;
+  --color-workspace: #f4f6f6;
   --color-surface: #ffffff;
   --color-ink: #17212b;
   --color-muted: #66727f;
@@ -13,6 +13,11 @@
   --color-accent: #0f7186;
   --color-accent-strong: #0a596a;
   --color-accent-soft: #e9f5f7;
+}
+
+:root {
+  --ui-shadow-soft: 0 1px 2px rgb(15 23 42 / 0.04), 0 12px 32px rgb(15 23 42 / 0.04);
+  --ui-ring: 0 0 0 3px rgb(15 113 134 / 0.16);
 }
 
 @layer base {
@@ -37,11 +42,59 @@
   :focus-visible {
     outline: 2px solid var(--color-accent);
     outline-offset: 2px;
+    box-shadow: var(--ui-ring);
   }
 
   button,
   a {
     -webkit-tap-highlight-color: transparent;
+  }
+}
+
+@layer components {
+  .ui-button:focus-visible {
+    outline: 2px solid var(--color-accent);
+    outline-offset: 2px;
+    box-shadow: var(--ui-ring);
+  }
+
+  .ui-surface {
+    box-shadow: var(--ui-shadow-soft);
+  }
+
+  .ui-spinner {
+    width: 0.9rem;
+    height: 0.9rem;
+    border: 2px solid currentColor;
+    border-right-color: transparent;
+    border-radius: 999px;
+    animation: ui-spin 0.75s linear infinite;
+  }
+
+  .ui-pulse-dot {
+    animation: ui-pulse 1.8s ease-in-out infinite;
+  }
+
+  .ui-avatar img {
+    display: block;
+  }
+}
+
+@keyframes ui-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes ui-pulse {
+  0%,
+  100% {
+    opacity: 0.55;
+    transform: scale(0.9);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.1);
   }
 }
 

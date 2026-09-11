@@ -42,7 +42,7 @@ function ProductBrand() {
   return (
     <Link
       to="/workspace/dashboard"
-      className="flex min-h-10 items-center gap-2.5 rounded-lg focus-visible:outline-none"
+      className="flex min-h-10 items-center gap-2.5 rounded-lg"
       aria-label="CodePaint 招新管理工作台"
     >
       <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-ink font-mono text-xs font-bold text-white">
@@ -58,37 +58,35 @@ function ProductBrand() {
 
 function NavigationLinks({ compact = false }: { compact?: boolean }) {
   return (
-    <nav aria-label={compact ? "移动端工作区导航" : "工作区导航"} className={compact ? "w-full" : "mt-9"}>
-      <ul className={compact ? "flex min-w-max items-center gap-1" : "space-y-1"}>
-        {NAV_ITEMS.map((item) => {
-          const Icon = item.icon;
-          return (
-            <li key={item.href}>
-              <Link
-                to={item.href}
-                aria-current={item.active ? "page" : undefined}
-                className={`group relative flex min-h-10 items-center gap-2.5 rounded-lg px-3 text-sm font-medium transition-colors focus-visible:outline-none ${
-                  compact ? "shrink-0" : "w-full"
-                } ${
-                  item.active
-                    ? "bg-accent-soft text-accent-strong"
-                    : "text-muted hover:bg-slate-100 hover:text-ink"
-                }`}
-              >
-                {item.active && !compact && (
-                  <span className="absolute inset-y-2 left-0 w-0.5 rounded-full bg-accent" aria-hidden="true" />
-                )}
-                <Icon
-                  className={`h-4 w-4 shrink-0 ${item.active ? "text-accent" : "text-subtle group-hover:text-muted"}`}
-                  aria-hidden="true"
-                />
-                <span>{item.label}</span>
-              </Link>
-            </li>
-          );
-        })}
-      </ul>
-    </nav>
+    <ul className={compact ? "flex min-w-max items-center gap-1" : "space-y-1"}>
+      {NAV_ITEMS.map((item) => {
+        const Icon = item.icon;
+        return (
+          <li key={item.href}>
+            <Link
+              to={item.href}
+              aria-current={item.active ? "page" : undefined}
+              className={`group relative flex min-h-10 items-center gap-2.5 rounded-lg px-3 text-sm font-medium transition-colors ${
+                compact ? "shrink-0" : "w-full"
+              } ${
+                item.active
+                  ? "bg-accent-soft text-accent-strong"
+                  : "text-muted hover:bg-slate-100 hover:text-ink"
+              }`}
+            >
+              {item.active && !compact && (
+                <span className="absolute inset-y-2 left-0 w-0.5 rounded-full bg-accent" aria-hidden="true" />
+              )}
+              <Icon
+                className={`h-4 w-4 shrink-0 ${item.active ? "text-accent" : "text-subtle group-hover:text-muted"}`}
+                aria-hidden="true"
+              />
+              <span>{item.label}</span>
+            </Link>
+          </li>
+        );
+      })}
+    </ul>
   );
 }
 
@@ -99,13 +97,15 @@ function Sidebar() {
         <div className="px-2">
           <ProductBrand />
         </div>
-        <NavigationLinks />
+        <nav aria-label="工作区导航" className="mt-9">
+          <NavigationLinks />
+        </nav>
       </div>
 
       <div className="border-t border-line pt-4">
         <Link
           to="/workspace/settings"
-          className="flex min-h-10 items-center gap-2.5 rounded-lg px-3 text-sm font-medium text-muted transition-colors hover:bg-slate-100 hover:text-ink focus-visible:outline-none"
+          className="flex min-h-10 items-center gap-2.5 rounded-lg px-3 text-sm font-medium text-muted transition-colors hover:bg-slate-100 hover:text-ink"
         >
           <Settings className="h-4 w-4 text-subtle" aria-hidden="true" />
           <span>系统设置与权限</span>
@@ -234,7 +234,7 @@ function ApplicantQueue({
                   type="button"
                   aria-pressed={selected}
                   onClick={() => onFilterChange(filter.id)}
-                  className={`min-h-9 rounded-lg border px-3 text-sm font-medium transition-colors focus-visible:outline-none ${
+                  className={`min-h-9 rounded-lg border px-3 text-sm font-medium transition-colors ${
                     selected
                       ? "border-cyan-200 bg-accent-soft text-accent-strong"
                       : "border-line bg-surface text-muted hover:border-slate-300 hover:text-ink"
@@ -295,7 +295,7 @@ function ApplicantQueue({
             <button
               type="button"
               onClick={() => onFilterChange("all")}
-              className="mt-4 min-h-10 rounded-lg border border-line bg-surface px-4 text-sm font-medium text-ink transition-colors hover:bg-slate-50 focus-visible:outline-none"
+              className="mt-4 min-h-10 rounded-lg border border-line bg-surface px-4 text-sm font-medium text-ink transition-colors hover:bg-slate-50"
             >
               显示全部申请
             </button>
@@ -464,7 +464,7 @@ function DashboardContent() {
               </div>
               <Link
                 to="/workspace/tasks"
-                className="w-fit rounded-md text-sm font-medium text-cyan-800 underline decoration-cyan-300 underline-offset-4 transition-colors hover:text-cyan-950 focus-visible:outline-none"
+                className="w-fit rounded-md text-sm font-medium text-cyan-800 underline decoration-cyan-300 underline-offset-4 transition-colors hover:text-cyan-950"
               >
                 查看异步任务
               </Link>
@@ -528,7 +528,7 @@ function App() {
               <nav aria-label="面包屑" className="hidden items-center gap-2 text-sm lg:flex">
                 <Link
                   to="/workspace/dashboard"
-                  className="font-medium text-muted transition-colors hover:text-ink focus-visible:outline-none"
+                  className="font-medium text-muted transition-colors hover:text-ink"
                 >
                   招募管理
                 </Link>

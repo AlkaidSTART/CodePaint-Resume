@@ -329,20 +329,21 @@ apps/
 - 普通用户个人中心的页面体验；
 - 绕过 API 直接读写数据库、对象存储或 AI Provider。
 
-#### 共享代码边界
+#### 前端代码边界
 
-两套应用共享以下包：
+两套应用不共享前端源码和运行时状态。每个应用在自己的 `src/` 下独立维护：
 
 ```text
-packages/
-├── api-client/        # 请求封装和 API 方法
-├── types/             # User、Role、Application、Task 等类型
-├── ui/                # Button、Input、Dialog、Toast 等基础组件
-├── auth/              # 会话、角色和权限工具
-└── utils/             # 日期、状态和格式化工具
+apps/public-web/src/
+├── lib/               # API client、类型、认证、UI、工具函数
+└── store/             # 公开端 Zustand 状态
+
+apps/admin-web/src/
+├── lib/               # API client、类型、认证、UI、工具函数
+└── store/             # 管理端 Zustand 状态
 ```
 
-不共享以下内容：
+两套应用可以通过后端 API 共享业务协议，但不得通过 workspace 包或跨应用源码导入共享实现。不共享以下内容：
 
 - 页面级 Layout；
 - 页面路由；

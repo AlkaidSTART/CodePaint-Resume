@@ -5,10 +5,10 @@
   "scripts": {
     "dev:public": "pnpm --filter @codepaint/public-web dev",
     "dev:admin": "pnpm --filter @codepaint/admin-web dev",
-    "dev": "pnpm --filter \"@codepaint/*\" dev",
-    "build": "pnpm --filter \"@codepaint/*\" build",
-    "typecheck": "pnpm --filter \"@codepaint/*\" typecheck",
-    "lint": "pnpm --filter \"@codepaint/*\" lint"
+    "dev": "pnpm --filter @codepaint/public-web --filter @codepaint/admin-web dev",
+    "build": "pnpm --filter @codepaint/public-web --filter @codepaint/admin-web build",
+    "typecheck": "pnpm --filter @codepaint/public-web --filter @codepaint/admin-web typecheck",
+    "lint": "pnpm --filter @codepaint/public-web --filter @codepaint/admin-web lint"
   },
   "devDependencies": {
     "@types/react": "^19.2.18",

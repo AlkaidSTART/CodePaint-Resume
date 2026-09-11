@@ -34,4 +34,7 @@ runtime. Do not put those values in Git. Review the rendered configuration with
 - `infra/scripts/restore.sh --confirm FILE` performs an explicit destructive restore.
 - `infra/scripts/deploy.sh --confirm` pulls and starts the production stack.
 
-The root `migrations/` directory remains the canonical migration source.
+`infra/compose/` is the sole Compose orchestration boundary. The canonical
+database migrations live in `infra/migrations/`; both the development and
+production migrate services mount that directory, and fresh development
+Postgres volumes initialize from `infra/migrations/001_init.sql`.

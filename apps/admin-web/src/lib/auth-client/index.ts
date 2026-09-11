@@ -1,4 +1,4 @@
-import type { Role, User } from "@codepaint/types";
+import type { Role, User } from "../types";
 
 // Client-side helpers only improve navigation and presentation. API authorization remains in Go.
 export function hasRole(user: User | null, role: Role): boolean {

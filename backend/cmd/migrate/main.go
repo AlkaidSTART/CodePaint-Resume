@@ -27,9 +27,10 @@ func main() {
 		if err != nil {
 			log.Fatal(err)
 		}
-		directory = filepath.Join(workingDir, "migrations")
+		// Support invocation from the repository root and from backend/ (make migrate).
+		directory = filepath.Join(workingDir, "infra", "migrations")
 		if _, err := os.Stat(directory); os.IsNotExist(err) {
-			directory = filepath.Join(workingDir, "..", "migrations")
+			directory = filepath.Join(workingDir, "..", "infra", "migrations")
 		}
 	}
 	if err := migrations.Apply(context.Background(), db, directory); err != nil {

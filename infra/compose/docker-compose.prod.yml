@@ -32,7 +32,7 @@ services:
       DATABASE_URL: ${DATABASE_URL:?DATABASE_URL is required}
       MIGRATIONS_DIR: /workspace/migrations
     volumes:
-      - ../../migrations:/workspace/migrations:ro
+      - ../migrations:/workspace/migrations:ro
     depends_on:
       postgres:
         condition: service_healthy

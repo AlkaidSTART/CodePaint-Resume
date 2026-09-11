@@ -191,22 +191,24 @@ func ParseResume(c *gin.Context) {
 resume-flow/
 ├── apps/
 │   ├── public-web/
+│   │   └── src/
+│   │       ├── lib/      # 应用本地 API client、types、auth-client、ui、utils
+│   │       └── store/    # 应用本地 Zustand store
 │   ├── admin-web/
+│   │   └── src/
+│   │       ├── lib/      # 应用本地 API client、types、auth-client、ui、utils
+│   │       └── store/    # 应用本地 Zustand store
 │   └── api/
 │
 ├── services/
 │   └── ocr/
 │
-├── packages/
-│   ├── api-client/
-│   ├── types/
-│   ├── ui/
-│   ├── auth/
-│   └── utils/
-│
-├── deploy/
+├── infra/
+│   ├── compose/
 │   ├── docker/
-│   └── compose/
+│   ├── migrations/
+│   ├── postgres/
+│   └── scripts/
 │
 ├── docs/
 │   ├── PRD.md
@@ -216,15 +218,13 @@ resume-flow/
 │   ├── UI-DESIGN-USER.md
 │   └── UI-DESIGN-ADMIN.md
 │
-├── migrations/
-│
 ├── Makefile
 └── README.md
 ```
 
 如果前后端完全独立，也可以拆成两个仓库；MVP 推荐 Monorepo，降低协议和版本管理成本。
 
-前端使用两个独立 React 应用：`public-web` 面向普通用户，`admin-web` 面向 `recruiter`。两者共享 API Client、TypeScript 类型、认证工具和基础 UI 组件，但分别维护页面路由、Layout、导航和业务组件。
+前端使用两个独立 React 应用：`public-web` 面向普通用户，`admin-web` 面向 `recruiter`。仓库不保留共享前端包，两个应用分别在各自 `src/lib` 下维护自己的 API Client、TypeScript 类型、认证工具、工具函数和基础 UI 组件，并在各自 `src/store` 下维护独立的 Zustand store；页面路由、Layout、导航和业务组件同样分别维护，应用之间不共享源码或状态。
 
 ---
 

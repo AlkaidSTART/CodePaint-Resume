@@ -1,4 +1,4 @@
-import type { ApiResponse, DashboardSummary, RecruitmentRole, User } from "@codepaint/types";
+import type { ApiResponse, DashboardSummary, RecruitmentRole, User } from "../types";
 
 const baseUrl = (import.meta.env.VITE_API_BASE_URL as string | undefined) ?? "/api/v1";
 

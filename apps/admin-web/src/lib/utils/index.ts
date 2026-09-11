@@ -1,4 +1,4 @@
-import type { ApplicationStatus, TaskStatus } from "@codepaint/types";
+import type { ApplicationStatus, TaskStatus } from "../types";
 
 export function formatDate(value: string): string {
   return new Intl.DateTimeFormat("zh-CN", { month: "short", day: "numeric" }).format(new Date(value));

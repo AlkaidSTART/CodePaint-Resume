@@ -3,25 +3,15 @@ import { Link, useNavigate } from "react-router-dom";
 import {
   AlertCircle,
   ArrowRight,
+  Check,
   Eye,
   EyeOff,
-  KeyRound,
   Lock,
   Mail,
   ShieldCheck,
-  Sparkles,
 } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
 import {
   InputGroup,
   InputGroupAddon,
@@ -39,12 +29,13 @@ export function LoginPage() {
   const [email, setEmail] = useState("admin@codepaint.studio");
   const [password, setPassword] = useState("codepaint2026");
   const [showPassword, setShowPassword] = useState(false);
+  const [activeRole, setActiveRole] = useState<"recruiter" | "user">("recruiter");
   const [error, setError] = useState<string | null>(null);
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     if (!email.trim()) {
-      setError("请输入登录邮箱");
+      setError("请输入工作邮箱");
       return;
     }
     if (!password.trim()) {
@@ -54,102 +45,197 @@ export function LoginPage() {
 
     setError(null);
     try {
-      const ok = await login(email.trim(), "recruiter");
+      const ok = await login(email.trim(), password);
       if (ok) {
         navigate("/workspace/dashboard");
       }
     } catch {
-      setError("登录失败，请检查网络或重试");
+      setError("登录凭证校验未通过，请核对邮箱与密码");
     }
   };
 
-  const handleQuickLogin = async (role: "recruiter" | "user") => {
-    const targetEmail = role === "recruiter" ? "admin@codepaint.studio" : "reviewer@codepaint.studio";
-    setEmail(targetEmail);
-    setPassword("codepaint2026");
+  const handleRolePreset = (role: "recruiter" | "user") => {
+    setActiveRole(role);
     setError(null);
-    const ok = await login(targetEmail, role);
-    if (ok) {
-      navigate("/workspace/dashboard");
+    if (role === "recruiter") {
+      setEmail("admin@codepaint.studio");
+      setPassword("codepaint2026");
+    } else {
+      setEmail("reviewer@codepaint.studio");
+      setPassword("codepaint2026");
     }
   };
 
   return (
-    <div className="flex min-h-screen flex-col justify-center bg-muted/30 px-4 py-12 sm:px-6 lg:px-8">
-      {/* Background radial highlight */}
-      <div
-        className="pointer-events-none fixed inset-0 z-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-cyan-900/10 via-background to-background"
-        aria-hidden="true"
-      />
+    <div className="min-h-screen bg-background text-foreground antialiased selection:bg-neutral-900 selection:text-white dark:selection:bg-white dark:selection:text-neutral-900">
+      <div className="grid min-h-screen lg:grid-cols-[1.15fr_0.85fr] xl:grid-cols-[1.25fr_0.75fr]">
+        {/* Left: Editorial Studio Console Identity (hidden on mobile, visible on desktop) */}
+        <aside className="relative hidden flex-col justify-between border-r border-border bg-muted/20 p-10 lg:flex xl:p-14">
+          {/* Subtle architectural hairline background */}
+          <div
+            className="pointer-events-none absolute inset-0 bg-[linear-gradient(to_right,#8080800a_1px,transparent_1px),linear-gradient(to_bottom,#8080800a_1px,transparent_1px)] bg-[size:32px_32px]"
+            aria-hidden="true"
+          />
 
-      <div className="relative z-10 sm:mx-auto sm:w-full sm:max-w-md">
-        {/* Brand Header */}
-        <div className="flex flex-col items-center text-center">
-          <Link
-            to="/workspace/dashboard"
-            className="group inline-flex items-center gap-2.5 rounded-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-          >
-            <span className="relative flex size-11 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-foreground font-mono text-sm font-bold tracking-tight text-background shadow-md transition-transform group-hover:scale-105">
-              <span className="absolute -right-3 -top-3 size-9 rounded-full bg-cyan-400/25" />
-              CP
-            </span>
-            <div className="text-left">
-              <span className="block text-sm font-bold tracking-[0.18em] text-foreground">
+          {/* Top Brand Bar */}
+          <div className="relative z-10">
+            <Link
+              to="/"
+              className="group inline-flex items-center gap-3 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            >
+              <span className="flex size-9 items-center justify-center rounded-lg bg-foreground font-mono text-xs font-bold text-background transition-transform duration-200 group-hover:scale-95">
+                CP
+              </span>
+              <div>
+                <span className="block font-mono text-xs font-semibold tracking-[0.24em] text-foreground">
+                  CODEPAINT STUDIO
+                </span>
+                <span className="block text-[11px] text-muted-foreground">
+                  招新与评审协作控制台
+                </span>
+              </div>
+            </Link>
+          </div>
+
+          {/* Center Editorial Manifesto & Cadence */}
+          <div className="relative z-10 my-auto max-w-xl py-12">
+            <div className="mb-6 flex items-center gap-2 font-mono text-[11px] uppercase tracking-widest text-muted-foreground">
+              <span className="size-1.5 rounded-full bg-emerald-500" aria-hidden="true" />
+              <span>AUTUMN 2026 RECRUITMENT CYCLE</span>
+            </div>
+
+            <h1 className="text-3xl font-bold tracking-tight text-foreground sm:text-4xl xl:text-[2.75rem] xl:leading-[1.15]">
+              专注代码质量、
+              <br />
+              设计感知与工程深度。
+            </h1>
+
+            <p className="mt-6 text-sm leading-relaxed text-muted-foreground">
+              CodePaint 招新管理系统服务于大前端、UI/UX 设计、办公室与后端架构四个组别的集中初筛、多模态简历解析与评审流转。不唯过往履历，重视作品思考与实现密度。
+            </p>
+
+            {/* Architecture Metrics Grid */}
+            <div className="mt-10 grid grid-cols-3 gap-6 border-t border-border/80 pt-8 font-mono">
+              <div>
+                <span className="block text-2xl font-bold text-foreground">04</span>
+                <span className="mt-1 block text-[11px] uppercase tracking-wider text-muted-foreground">
+                  协同方向组别
+                </span>
+              </div>
+              <div>
+                <span className="block text-2xl font-bold text-foreground">OCR+LLM</span>
+                <span className="mt-1 block text-[11px] uppercase tracking-wider text-muted-foreground">
+                  结构化提取流水线
+                </span>
+              </div>
+              <div>
+                <span className="block text-2xl font-bold text-foreground">100%</span>
+                <span className="mt-1 block text-[11px] uppercase tracking-wider text-muted-foreground">
+                  本地安全隔离
+                </span>
+              </div>
+            </div>
+          </div>
+
+          {/* Bottom System Meta */}
+          <div className="relative z-10 flex items-center justify-between border-t border-border/60 pt-6 text-xs text-muted-foreground">
+            <span className="font-mono text-[11px]">VERSION 0.1.0 · BUILD 2026.09</span>
+            <div className="flex items-center gap-2">
+              <span className="size-1.5 rounded-full bg-emerald-500" aria-hidden="true" />
+              <span className="font-mono text-[11px]">CLUSTER READY</span>
+            </div>
+          </div>
+        </aside>
+
+        {/* Right: Interaction Form Surface */}
+        <main className="flex flex-col justify-between px-6 py-10 sm:px-12 lg:px-14 xl:px-16">
+          {/* Mobile Top Brand (visible on < lg) */}
+          <div className="flex items-center justify-between border-b border-border/60 pb-6 lg:hidden">
+            <Link
+              to="/"
+              className="flex items-center gap-2.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            >
+              <span className="flex size-8 items-center justify-center rounded-md bg-foreground font-mono text-xs font-bold text-background">
+                CP
+              </span>
+              <span className="font-mono text-xs font-bold tracking-[0.2em] text-foreground">
                 CODEPAINT
               </span>
-              <span className="block text-xs font-medium text-muted-foreground">
-                招新管理工作台
-              </span>
-            </div>
-          </Link>
-          <div className="mt-4 flex items-center gap-2">
-            <Badge variant="secondary" className="gap-1 px-2.5 text-[11px] font-medium">
-              <Sparkles className="size-3 text-cyan-600" />
-              2026 秋季招募季
-            </Badge>
-            <Badge variant="outline" className="text-[11px] text-muted-foreground">
-              v0.1.0 内部协同
-            </Badge>
+            </Link>
+            <span className="font-mono text-[11px] text-muted-foreground">
+              招新管理工作台
+            </span>
           </div>
-        </div>
 
-        {/* Auth Card */}
-        <Card className="mt-6 border shadow-lg">
-          <CardHeader className="space-y-1 pb-4">
-            <CardTitle className="text-xl font-semibold tracking-tight">
-              登录管理员账号
-            </CardTitle>
-            <CardDescription className="text-xs">
-              输入凭证以进入招新审核中心及看板
-            </CardDescription>
-          </CardHeader>
+          {/* Main Form Center Box */}
+          <div className="mx-auto my-auto w-full max-w-[380px] py-8 sm:max-w-[400px]">
+            {/* Header */}
+            <div className="mb-8">
+              <h2 className="text-2xl font-bold tracking-tight text-foreground sm:text-3xl">
+                管理员登录
+              </h2>
+              <p className="mt-2 text-xs text-muted-foreground sm:text-sm">
+                输入团队成员凭证以进入候选人流转与初筛工作台
+              </p>
+            </div>
 
-          <CardContent className="space-y-4">
+            {/* Quick Demo Segmented Switcher */}
+            <div className="mb-6 rounded-lg border border-border bg-muted/30 p-1">
+              <div className="grid grid-cols-2 gap-1 font-mono text-xs">
+                <button
+                  type="button"
+                  onClick={() => handleRolePreset("recruiter")}
+                  className={`flex items-center justify-center gap-1.5 rounded-md py-2 transition-colors ${
+                    activeRole === "recruiter"
+                      ? "bg-background text-foreground shadow-sm font-semibold"
+                      : "text-muted-foreground hover:text-foreground"
+                  }`}
+                >
+                  {activeRole === "recruiter" && <Check className="size-3 text-emerald-600" />}
+                  <span>主管账号</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleRolePreset("user")}
+                  className={`flex items-center justify-center gap-1.5 rounded-md py-2 transition-colors ${
+                    activeRole === "user"
+                      ? "bg-background text-foreground shadow-sm font-semibold"
+                      : "text-muted-foreground hover:text-foreground"
+                  }`}
+                >
+                  {activeRole === "user" && <Check className="size-3 text-emerald-600" />}
+                  <span>评审账号</span>
+                </button>
+              </div>
+            </div>
+
+            {/* Error Message */}
             {error && (
-              <Alert variant="destructive" className="py-2.5">
+              <Alert variant="destructive" className="mb-6 py-2.5">
                 <AlertCircle className="size-4" />
-                <AlertTitle className="text-xs font-medium">登录错误</AlertTitle>
+                <AlertTitle className="text-xs font-medium">验证失败</AlertTitle>
                 <AlertDescription className="text-xs">{error}</AlertDescription>
               </Alert>
             )}
 
+            {/* Login Form */}
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="space-y-1.5">
-                <Label htmlFor="login-email" className="text-xs">
-                  工作邮箱 / 账号
+                <Label htmlFor="login-email" className="text-xs font-medium">
+                  工作邮箱
                 </Label>
                 <InputGroup>
                   <InputGroupAddon align="inline-start">
-                    <Mail className="size-4 text-muted-foreground" />
+                    <Mail className="size-4 text-muted-foreground" aria-hidden="true" />
                   </InputGroupAddon>
                   <InputGroupInput
                     id="login-email"
                     type="email"
                     required
-                    placeholder="name@codepaint.studio"
+                    autoComplete="email"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    autoComplete="email"
+                    placeholder="name@codepaint.studio"
                     className="text-xs"
                   />
                 </InputGroup>
@@ -157,115 +243,71 @@ export function LoginPage() {
 
               <div className="space-y-1.5">
                 <div className="flex items-center justify-between">
-                  <Label htmlFor="login-password" className="text-xs">
+                  <Label htmlFor="login-password" className="text-xs font-medium">
                     密码
                   </Label>
-                  <button
-                    type="button"
-                    onClick={() => setPassword("codepaint2026")}
-                    className="text-[11px] text-muted-foreground transition-colors hover:text-foreground"
-                  >
-                    重置演示密码
-                  </button>
                 </div>
                 <InputGroup>
                   <InputGroupAddon align="inline-start">
-                    <Lock className="size-4 text-muted-foreground" />
+                    <Lock className="size-4 text-muted-foreground" aria-hidden="true" />
                   </InputGroupAddon>
                   <InputGroupInput
                     id="login-password"
                     type={showPassword ? "text" : "password"}
                     required
-                    placeholder="••••••••"
+                    autoComplete="current-password"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    autoComplete="current-password"
+                    placeholder="••••••••"
                     className="text-xs"
                   />
-                  <InputGroupAddon align="inline-end">
-                    <InputGroupButton
-                      size="icon-xs"
-                      aria-label={showPassword ? "隐藏密码" : "显示密码"}
-                      onClick={() => setShowPassword(!showPassword)}
-                    >
-                      {showPassword ? (
-                        <EyeOff className="size-3.5" />
-                      ) : (
-                        <Eye className="size-3.5" />
-                      )}
-                    </InputGroupButton>
-                  </InputGroupAddon>
+                  <InputGroupButton
+                    type="button"
+                    variant="ghost"
+                    size="icon-xs"
+                    onClick={() => setShowPassword((prev) => !prev)}
+                    aria-label={showPassword ? "隐藏密码" : "显示密码"}
+                  >
+                    {showPassword ? (
+                      <EyeOff className="size-3.5 text-muted-foreground" />
+                    ) : (
+                      <Eye className="size-3.5 text-muted-foreground" />
+                    )}
+                  </InputGroupButton>
                 </InputGroup>
               </div>
 
               <Button
                 type="submit"
-                className="w-full font-medium"
+                className="mt-2 w-full gap-2 text-xs font-semibold"
                 isDisabled={authLoading}
               >
-                {authLoading ? (
-                  "正在验证身份..."
-                ) : (
-                  <>
-                    进入工作台 <ArrowRight className="size-4" />
-                  </>
-                )}
+                {authLoading ? "正在验证凭证..." : "进入工作台"}
+                {!authLoading && <ArrowRight className="size-3.5" />}
               </Button>
             </form>
 
-            {/* Quick Demo Section */}
-            <div className="relative py-2">
-              <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-dashed" />
-              </div>
-              <div className="relative flex justify-center text-[11px] uppercase tracking-wider text-muted-foreground">
-                <span className="bg-card px-2 font-medium">快速体验通道</span>
-              </div>
-            </div>
-
-            <div className="grid grid-cols-2 gap-2">
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                className="justify-start gap-1.5 text-xs"
-                onPress={() => void handleQuickLogin("recruiter")}
-                isDisabled={authLoading}
-              >
-                <ShieldCheck className="size-3.5 text-cyan-600" />
-                <span className="truncate">超级管理员</span>
-              </Button>
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                className="justify-start gap-1.5 text-xs"
-                onPress={() => void handleQuickLogin("user")}
-                isDisabled={authLoading}
-              >
-                <KeyRound className="size-3.5 text-amber-600" />
-                <span className="truncate">评审专家</span>
-              </Button>
-            </div>
-          </CardContent>
-
-          <CardFooter className="flex flex-col gap-3 border-t bg-muted/10 py-3 text-center text-xs text-muted-foreground">
-            <div className="flex items-center justify-center gap-1">
-              <span>还没有成员账号？</span>
+            {/* Bottom Register Prompt */}
+            <div className="mt-8 border-t border-border pt-6 text-center text-xs text-muted-foreground">
+              <span>还没有加入评审团队？</span>{" "}
               <Link
                 to="/register"
-                className="font-medium text-foreground underline-offset-4 hover:underline"
+                className="font-medium text-foreground underline-offset-4 transition-colors hover:underline"
               >
-                申请加入团队
+                申请协作账号
               </Link>
             </div>
-          </CardFooter>
-        </Card>
+          </div>
 
-        {/* Security / info footer */}
-        <p className="mt-6 text-center text-[11px] text-muted-foreground">
-          CodePaint 招新协同系统 · 端到端严格权限隔离
-        </p>
+          {/* Footer Security / Provenance */}
+          <div className="flex items-center justify-between border-t border-border/40 pt-4 text-[11px] text-muted-foreground">
+            <span className="inline-flex items-center gap-1.5">
+              <ShieldCheck className="size-3.5 text-muted-foreground/70" />
+              仅限内部授权人员访问
+            </span>
+            <span className="font-mono">CP-OPERATIONS</span>
+          </div>
+        </main>
       </div>
     </div>
   );

@@ -37,3 +37,4 @@ plan/*
 .harness/
 harness/*
 .claude/*
+docs/*

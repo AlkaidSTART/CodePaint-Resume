@@ -1,0 +1,390 @@
+openapi: 3.1.0
+info:
+  title: ResumeFlow API
+  version: 0.2.0
+  description: CodePaint Studio 招新与简历智能解析平台后端接口契约。
+servers:
+  - url: /
+    description: 当前服务地址
+tags:
+  - name: System
+    description: 服务基础与健康探测
+  - name: Public
+    description: 候选人端公开招新接口
+  - name: Auth
+    description: 用户注册、登录与会话鉴权
+  - name: Workspace
+    description: 招聘官端工作台与业务流转
+paths:
+  /healthz:
+    get:
+      tags:
+        - System
+      summary: 服务健康检查
+      description: 探测 API 服务存活状态
+      responses:
+        '200':
+          description: 服务正常
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: ok
+                  service:
+                    type: string
+                    example: resumeflow-api
+
+  /api/v1/public/recruitment:
+    get:
+      tags:
+        - Public
+      summary: 获取公开招新信息
+      description: 返回官网首页标题与介绍文案
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  title:
+                    type: string
+                    example: 一起把想法做成真正能运行的作品
+                  intro:
+                    type: string
+                    example: CodePaint Studio 2026 秋季招新
+
+  /api/v1/public/recruitment/roles:
+    get:
+      tags:
+        - Public
+      summary: 获取招新方向列表
+      description: 查询当前工作区对外开放报名的技术/设计/产品方向
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Role'
+
+  /api/v1/auth/register:
+    post:
+      tags:
+        - Auth
+      summary: 候选人注册
+      description: 新用户注册，返回用户数据并写入 session cookie
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RegisterRequest'
+      responses:
+        '201':
+          description: 注册成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  user:
+                    $ref: '#/components/schemas/User'
+        '422':
+          description: 校验失败
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/v1/auth/login:
+    post:
+      tags:
+        - Auth
+      summary: 用户登录
+      description: 凭邮箱和密码登录，颁发 session cookie
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+      responses:
+        '200':
+          description: 登录成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  user:
+                    $ref: '#/components/schemas/User'
+        '401':
+          description: 邮箱或密码错误
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/v1/auth/logout:
+    post:
+      tags:
+        - Auth
+      summary: 退出登录
+      description: 注销当前会话并清除 cookie
+      responses:
+        '200':
+          description: 已注销
+
+  /api/v1/auth/me:
+    get:
+      tags:
+        - Auth
+      summary: 获取当前身份
+      description: 获取当前登录用户的 ID 与角色权限
+      security:
+        - CookieAuth: []
+        - DemoAuth: []
+      responses:
+        '200':
+          description: 身份已验证
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: string
+                    format: uuid
+                  roles:
+                    type: array
+                    items:
+                      type: string
+        '401':
+          description: 未登录
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/v1/workspace/dashboard:
+    get:
+      tags:
+        - Workspace
+      summary: 工作台总览统计
+      description: 统计待处理报名数、流水线执行状态以及最新申请列表
+      security:
+        - CookieAuth: []
+        - DemoAuth: []
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Dashboard'
+        '403':
+          description: 无招新成员权限
+
+  /api/v1/workspace/applicants:
+    get:
+      tags:
+        - Workspace
+      summary: 申请人列表
+      description: 获取当前工作区下的候选人报名记录
+      security:
+        - CookieAuth: []
+        - DemoAuth: []
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Application'
+
+  /api/v1/workspace/tasks:
+    get:
+      tags:
+        - Workspace
+      summary: 异步任务列表
+      description: 查询最近的简历解析、OCR、提取等后台任务流水
+      security:
+        - CookieAuth: []
+        - DemoAuth: []
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Task'
+
+components:
+  securitySchemes:
+    CookieAuth:
+      type: apiKey
+      in: cookie
+      name: resumeflow_session
+    DemoAuth:
+      type: apiKey
+      in: header
+      name: X-Demo-Role
+      description: 开发调试阶段模拟角色 (user / recruiter)
+  schemas:
+    RegisterRequest:
+      type: object
+      required:
+        - email
+        - name
+        - password
+      properties:
+        email:
+          type: string
+          format: email
+          example: student@example.com
+        name:
+          type: string
+          example: 张三
+        password:
+          type: string
+          format: password
+          example: secure_pass123
+
+    LoginRequest:
+      type: object
+      required:
+        - email
+        - password
+      properties:
+        email:
+          type: string
+          format: email
+          example: student@example.com
+        password:
+          type: string
+          format: password
+          example: secure_pass123
+
+    User:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        email:
+          type: string
+          format: email
+        name:
+          type: string
+        status:
+          type: string
+          enum: [invited, active, suspended]
+        roles:
+          type: array
+          items:
+            type: string
+
+    Role:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        slug:
+          type: string
+          example: engineering
+        name:
+          type: string
+          example: 工程
+        short_name:
+          type: string
+          example: 工程
+        description:
+          type: string
+          example: 做产品、工具和实验，把想法变成可使用的东西。
+
+    Application:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        applicant_name:
+          type: string
+          example: 李四
+        role:
+          type: string
+          example: 工程
+        role_slug:
+          type: string
+          example: engineering
+        status:
+          type: string
+          enum: [submitted, processing, contacted, closed]
+        submitted_at:
+          type: string
+          format: date-time
+        summary:
+          type: string
+
+    Task:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        title:
+          type: string
+          example: resume.parse
+        status:
+          type: string
+          enum: [queued, processing, completed, failed]
+        stage:
+          type: string
+        updated_at:
+          type: string
+
+    Dashboard:
+      type: object
+      properties:
+        pending_review:
+          type: integer
+          example: 12
+        processing:
+          type: integer
+          example: 3
+        failed:
+          type: integer
+          example: 0
+        recent_applications:
+          type: array
+          items:
+            $ref: '#/components/schemas/Application'
+        tasks:
+          type: array
+          items:
+            $ref: '#/components/schemas/Task'
+
+    ErrorResponse:
+      type: object
+      properties:
+        error:
+          type: object
+          properties:
+            code:
+              type: string
+              example: VALIDATION_FAILED
+            message:
+              type: string
+              example: 注册信息无效

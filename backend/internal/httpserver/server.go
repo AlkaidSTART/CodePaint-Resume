@@ -28,6 +28,7 @@ type loginRequest struct {
 func New(cfg config.Config, recruitment *service.RecruitmentService, authService *auth.Service) *Server {
 	r := gin.New()
 	r.Use(gin.Logger(), gin.Recovery(), auth.Authenticate(cfg.AllowDemoAuth, authService))
+	registerDocs(r)
 	r.GET("/healthz", func(c *gin.Context) { respond(c, http.StatusOK, gin.H{"status": "ok", "service": "resumeflow-api"}) })
 	v1 := r.Group("/api/v1")
 	v1.GET("/public/recruitment", func(c *gin.Context) {

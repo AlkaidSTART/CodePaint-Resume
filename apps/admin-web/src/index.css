@@ -12,15 +12,15 @@
  */
 :root {
   /* Workspace palette */
-  --workspace: #f5f7f7;
+  --workspace: #ffffff;
   --surface: #ffffff;
-  --ink: #17212b;
-  --muted-ink: #66727f;
-  --subtle-ink: #8a95a1;
-  --line: #dfe5e8;
-  --brand: #0f7186;
-  --brand-strong: #0a596a;
-  --brand-soft: #e9f5f7;
+  --ink: #000000;
+  --muted-ink: #737373;
+  --subtle-ink: #a3a3a3;
+  --line: #e5e5e5;
+  --brand: #000000;
+  --brand-strong: #000000;
+  --brand-soft: #f5f5f5;
 
   /* Semantic state colors */
   --state-pending: #b45309;
@@ -44,31 +44,31 @@
   --popover: var(--surface);
   --popover-foreground: var(--ink);
   --primary: var(--ink);
-  --primary-foreground: #fbfcfc;
+  --primary-foreground: #ffffff;
   --secondary: var(--brand-soft);
-  --secondary-foreground: var(--brand-strong);
-  --muted: #f1f4f5;
+  --secondary-foreground: var(--ink);
+  --muted: #f5f5f5;
   --muted-foreground: var(--muted-ink);
   --accent: var(--brand-soft);
-  --accent-foreground: var(--brand-strong);
+  --accent-foreground: var(--ink);
   --destructive: var(--state-error);
   --border: var(--line);
   --input: var(--line);
-  --ring: var(--brand);
+  --ring: var(--ink);
   --chart-1: #0f7186;
   --chart-2: #0e7490;
   --chart-3: #047857;
   --chart-4: #b45309;
   --chart-5: #be123c;
-  --radius: 0.5rem;
+  --radius: 1rem; /* increase radius for organic feel */
   --sidebar: var(--surface);
   --sidebar-foreground: var(--ink);
   --sidebar-primary: var(--brand);
-  --sidebar-primary-foreground: #fbfcfc;
+  --sidebar-primary-foreground: #ffffff;
   --sidebar-accent: var(--brand-soft);
-  --sidebar-accent-foreground: var(--brand-strong);
+  --sidebar-accent-foreground: var(--ink);
   --sidebar-border: var(--line);
-  --sidebar-ring: var(--brand);
+  --sidebar-ring: var(--ink);
 }
 
 @theme inline {

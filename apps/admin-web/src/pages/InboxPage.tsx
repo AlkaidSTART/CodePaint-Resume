@@ -89,36 +89,36 @@ export function InboxPage() {
   };
 
   return (
-    <div ref={containerRef} className="space-y-6">
+    <div ref={containerRef} className="space-y-8">
       {/* Header */}
-      <div className="anim-inbox-header flex flex-col justify-between gap-4 border-b border-border/80 pb-5 sm:flex-row sm:items-center">
+      <div className="anim-inbox-header flex flex-col justify-between gap-4 pb-2 sm:flex-row sm:items-end">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight text-foreground sm:text-3xl">
+          <h1 className="text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
             报名收件箱
           </h1>
-          <p className="mt-1 text-xs text-muted-foreground sm:text-sm">
+          <p className="mt-2 text-sm text-muted-foreground">
             集中处理最新投递申请，支持批量初审、流转决策与站内协同通知
           </p>
         </div>
 
         {selectedIds.length > 0 && (
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-3">
             <Button
               size="sm"
               variant="outline"
-              className="gap-1.5 text-xs font-medium"
+              className="gap-2 font-semibold"
               onPress={handleBatchApprove}
             >
-              <CheckCheck className="size-3.5 text-emerald-600" />
+              <CheckCheck className="size-4 text-emerald-600" />
               批量通过 ({selectedIds.length})
             </Button>
             <Button
               size="sm"
               variant="default"
-              className="gap-1.5 text-xs font-medium"
+              className="gap-2 font-semibold"
               onPress={handleBatchNotify}
             >
-              <Send className="size-3.5" />
+              <Send className="size-4" />
               发送面试邀请
             </Button>
           </div>
@@ -128,7 +128,7 @@ export function InboxPage() {
       {feedback && (
         <div
           role="status"
-          className="rounded-md border border-emerald-500/30 bg-emerald-500/10 p-3 text-xs font-medium text-emerald-800 dark:text-emerald-300"
+          className="rounded-full border border-emerald-500/10 bg-emerald-50 px-4 py-2 text-sm font-medium text-emerald-800 shadow-sm"
         >
           {feedback}
         </div>
@@ -137,7 +137,7 @@ export function InboxPage() {
       {/* Filter Tabs */}
       <div className="flex items-center justify-between">
         <div
-          className="flex items-center gap-1 rounded-md border border-border/80 bg-muted/40 p-1"
+          className="flex items-center gap-1 rounded-full border border-neutral-200/60 bg-neutral-50 p-1"
           role="tablist"
         >
           {[
@@ -154,9 +154,9 @@ export function InboxPage() {
                 setFilterTab(tab.id as any);
                 setSelectedIds([]);
               }}
-              className={`rounded px-3 py-1 text-xs font-medium transition-colors ${
+              className={`rounded-full px-4 py-1.5 text-xs font-semibold transition-colors ${
                 filterTab === tab.id
-                  ? "bg-background text-foreground shadow-xs font-semibold"
+                  ? "bg-white text-black shadow-sm"
                   : "text-muted-foreground hover:text-foreground"
               }`}
             >
@@ -165,34 +165,34 @@ export function InboxPage() {
           ))}
         </div>
 
-        <span className="text-xs text-muted-foreground">
+        <span className="text-sm font-medium text-muted-foreground">
           显示 {applications.length} 条记录
         </span>
       </div>
 
       {/* Inbox List Card */}
-      <Card className="border shadow-xs">
-        <CardHeader className="flex flex-row items-center justify-between border-b p-4">
+      <Card>
+        <CardHeader className="flex flex-row items-center justify-between border-b border-neutral-100 p-6">
           <div className="flex items-center gap-3">
             <input
               type="checkbox"
               checked={applications.length > 0 && selectedIds.length === applications.length}
               onChange={selectAll}
-              className="size-4 rounded border-border focus-visible:ring-2 focus-visible:ring-ring"
+              className="size-4 rounded-full border-neutral-300 focus-visible:ring-2 focus-visible:ring-ring"
               aria-label="全选当前列表所有申请"
             />
-            <span className="text-xs text-muted-foreground">
+            <span className="text-sm font-medium text-muted-foreground">
               已选 {selectedIds.length} / {applications.length} 项
             </span>
           </div>
-          <span className="text-xs text-muted-foreground">
+          <span className="text-sm font-medium text-muted-foreground">
             {filterTab === "pending" ? "待审核申请" : "当前视图总览"}
           </span>
         </CardHeader>
 
         <CardContent className="p-0">
           {applications.length > 0 ? (
-            <ul className="divide-y divide-border/60">
+            <ul className="divide-y divide-neutral-100">
               {applications.map((app) => {
                 const isSelected = selectedIds.includes(app.id);
                 return (

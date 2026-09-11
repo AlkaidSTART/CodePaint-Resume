@@ -183,7 +183,7 @@ export function RegisterPage() {
           <div className="mx-auto my-auto w-full max-w-[380px] py-8 sm:max-w-[420px]">
             {/* Header */}
             <div className="mb-8">
-              <h2 className="text-2xl font-bold tracking-tight text-foreground sm:text-3xl">
+              <h2 className="text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
                 申请协作账号
               </h2>
               <p className="mt-2 text-xs text-muted-foreground sm:text-sm">

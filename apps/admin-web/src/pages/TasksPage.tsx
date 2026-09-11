@@ -149,9 +149,9 @@ export function TasksPage() {
 
   return (
     <div ref={containerRef} className="space-y-6">
-      <div className="anim-tasks-header flex flex-col justify-between gap-4 border-b border-border/80 pb-5 sm:flex-row sm:items-center">
+      <div className="anim-tasks-header flex flex-col justify-between gap-4 pb-2 sm:flex-row sm:items-center">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight text-foreground sm:text-3xl">
+          <h1 className="text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
             异步解析队列监控
           </h1>
           <p className="mt-1 text-xs text-muted-foreground sm:text-sm">
@@ -172,13 +172,13 @@ export function TasksPage() {
       {feedback && (
         <div
           role="status"
-          className="rounded-md border border-emerald-500/30 bg-emerald-500/10 p-3 text-xs font-medium text-emerald-800 dark:text-emerald-300"
+          className="rounded-full border border-emerald-500/10 bg-emerald-50 p-3 text-xs font-medium text-emerald-800 dark:text-emerald-300"
         >
           {feedback}
         </div>
       )}
 
-      <div className="grid grid-cols-3 gap-px overflow-hidden rounded-lg border border-border bg-border">
+      <div className="grid grid-cols-3 gap-px overflow-hidden rounded-lg border border-neutral-100 bg-neutral-100">
         <div className="anim-stat-card bg-card p-5">
           <div className="flex items-center justify-between">
             <span className="text-xs font-medium text-muted-foreground">处理中任务</span>
@@ -224,7 +224,7 @@ export function TasksPage() {
         </div>
       )}
 
-      <Card className="border shadow-xs">
+      <Card  >
         <CardHeader className="border-b p-4 pb-3">
           <div className="flex items-center justify-between">
             <div>

@@ -539,9 +539,9 @@ export function AdminShell({
             <div
               role="dialog"
               aria-label="通知中心"
-              className="absolute right-6 top-11 z-40 w-84 rounded-lg border border-border/80 bg-card p-4 shadow-md"
+              className="absolute right-6 top-11 z-40 w-84 rounded-lg border border-neutral-100 bg-white shadow-sm p-4 shadow-md"
             >
-              <div className="flex items-center justify-between border-b border-border/70 pb-2.5">
+              <div className="flex items-center justify-between border-b border-neutral-100 pb-2.5">
                 <div className="flex items-center gap-2">
                   <span className="text-xs font-semibold text-foreground">系统动态</span>
                   <span className="font-mono text-[11px] text-muted-foreground">3 条未读</span>

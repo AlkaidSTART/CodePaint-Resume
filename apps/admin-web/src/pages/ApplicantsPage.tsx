@@ -154,33 +154,33 @@ export function ApplicantsPage() {
   };
 
   return (
-    <div ref={containerRef} className="space-y-6">
+    <div ref={containerRef} className="space-y-8">
       {/* Page Header */}
-      <div className="anim-header flex flex-col justify-between gap-4 border-b border-border/80 pb-5 sm:flex-row sm:items-center">
+      <div className="anim-header flex flex-col justify-between gap-4 pb-2 sm:flex-row sm:items-end">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight text-foreground sm:text-3xl">
+          <h1 className="text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
             候选人档案库
           </h1>
-          <p className="mt-1 text-xs text-muted-foreground sm:text-sm">
+          <p className="mt-2 text-sm text-muted-foreground">
             维护各项目组报名档案、技能提要、多维评分证据与初审决策
           </p>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-3">
           <Button
             variant="outline"
             size="sm"
             onPress={handleExportCSV}
-            className="gap-1.5 text-xs font-medium"
+            className="gap-2 font-semibold"
           >
-            <Download className="size-3.5" />
+            <Download className="size-4" />
             导出名单 (CSV)
           </Button>
           <Button
             size="sm"
             onPress={() => setIsAddModalOpen(true)}
-            className="gap-1.5 text-xs font-medium"
+            className="gap-2 font-semibold"
           >
-            <Plus className="size-3.5" />
+            <Plus className="size-4" />
             手动录入候选人
           </Button>
         </div>
@@ -189,24 +189,24 @@ export function ApplicantsPage() {
       {feedback && (
         <div
           role="status"
-          className="rounded-md border border-emerald-500/30 bg-emerald-500/10 p-3 text-xs font-medium text-emerald-800 dark:text-emerald-300"
+          className="rounded-full border border-emerald-500/10 bg-emerald-50 px-4 py-2 text-sm font-medium text-emerald-800 shadow-sm"
         >
           {feedback}
         </div>
       )}
 
       {/* Filter and Search Bar */}
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <div className="w-full max-w-sm">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div className="w-full max-w-md">
           <InputGroup>
             <InputGroupAddon align="inline-start">
-              <Search className="size-3.5 text-muted-foreground" />
+              <Search className="size-4 text-muted-foreground" />
             </InputGroupAddon>
             <InputGroupInput
               placeholder="按姓名、技能栈或经历搜索..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="text-xs"
+              className="text-sm bg-neutral-50/50 border-neutral-200"
             />
             {search && (
               <InputGroupAddon align="inline-end">
@@ -216,7 +216,7 @@ export function ApplicantsPage() {
                   className="text-muted-foreground hover:text-foreground"
                   aria-label="清除搜索关键字"
                 >
-                  <X className="size-3.5" />
+                  <X className="size-4" />
                 </button>
               </InputGroupAddon>
             )}
@@ -225,7 +225,7 @@ export function ApplicantsPage() {
 
         <div className="flex flex-wrap items-center gap-3">
           <div
-            className="flex items-center gap-1 rounded-md border border-border/80 bg-muted/40 p-1"
+            className="flex items-center gap-1 rounded-full border border-neutral-200/60 bg-neutral-50 p-1"
             role="group"
             aria-label="按专业组别筛选"
           >
@@ -239,9 +239,9 @@ export function ApplicantsPage() {
                 key={r.id}
                 type="button"
                 onClick={() => setRoleFilter(r.id)}
-                className={`rounded px-3 py-1 text-xs font-medium transition-colors ${
+                className={`rounded-full px-4 py-1.5 text-xs font-semibold transition-colors ${
                   roleFilter === r.id
-                    ? "bg-background text-foreground shadow-xs font-semibold"
+                    ? "bg-white text-black shadow-sm"
                     : "text-muted-foreground hover:text-foreground"
                 }`}
               >
@@ -251,16 +251,16 @@ export function ApplicantsPage() {
           </div>
 
           <div
-            className="flex items-center gap-1 rounded-md border border-border/80 bg-muted/40 p-1"
+            className="flex items-center gap-1 rounded-full border border-neutral-200/60 bg-neutral-50 p-1"
             role="group"
             aria-label="排序方式"
           >
             <button
               type="button"
               onClick={() => setSortBy("score")}
-              className={`rounded px-2.5 py-1 text-xs font-medium transition-colors ${
+              className={`rounded-full px-3 py-1.5 text-xs font-semibold transition-colors ${
                 sortBy === "score"
-                  ? "bg-background text-foreground shadow-xs font-semibold"
+                  ? "bg-white text-black shadow-sm"
                   : "text-muted-foreground hover:text-foreground"
               }`}
             >
@@ -269,9 +269,9 @@ export function ApplicantsPage() {
             <button
               type="button"
               onClick={() => setSortBy("date")}
-              className={`rounded px-2.5 py-1 text-xs font-medium transition-colors ${
+              className={`rounded-full px-3 py-1.5 text-xs font-semibold transition-colors ${
                 sortBy === "date"
-                  ? "bg-background text-foreground shadow-xs font-semibold"
+                  ? "bg-white text-black shadow-sm"
                   : "text-muted-foreground hover:text-foreground"
               }`}
             >
@@ -282,12 +282,12 @@ export function ApplicantsPage() {
       </div>
 
       {/* Candidates Table Card */}
-      <Card className="border shadow-xs">
-        <CardHeader className="border-b p-4 pb-3">
+      <Card>
+        <CardHeader className="border-b border-neutral-100 p-6 pb-4">
           <div className="flex items-center justify-between">
             <div>
-              <CardTitle className="text-base font-semibold">候选人花名册</CardTitle>
-              <p className="mt-0.5 text-xs text-muted-foreground">
+              <CardTitle className="text-lg font-bold">候选人花名册</CardTitle>
+              <p className="mt-1 text-sm text-muted-foreground">
                 当前筛选下共 {applications.length} 位候选人
               </p>
             </div>
@@ -299,8 +299,8 @@ export function ApplicantsPage() {
 
         <CardContent className="p-0">
           <div className="overflow-x-auto">
-            <table className="w-full text-left text-xs">
-              <thead className="border-b border-border/80 bg-muted/30 font-medium text-muted-foreground text-[11px]">
+            <table className="w-full text-left text-sm">
+              <thead className="border-b border-neutral-100 bg-transparent font-semibold text-muted-foreground text-xs">
                 <tr>
                   <th className="px-5 py-3 font-medium">候选人</th>
                   <th className="px-5 py-3 font-medium">意向组别</th>
@@ -311,12 +311,12 @@ export function ApplicantsPage() {
                   <th className="px-5 py-3 text-right font-medium">操作</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-border/60">
+              <tbody className="divide-y divide-neutral-100">
                 {applications.length > 0 ? (
                   applications.map((app) => (
                     <tr
                       key={app.id}
-                      className="anim-table-row transition-colors hover:bg-muted/20"
+                      className="anim-table-row transition-colors hover:bg-neutral-50/80"
                     >
                       <td className="px-5 py-3.5 font-medium">
                         <div className="flex items-center gap-3">

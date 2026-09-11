@@ -184,9 +184,9 @@ export function RolesPage() {
 
   return (
     <div ref={containerRef} className="space-y-6">
-      <div className="anim-roles-header flex flex-col justify-between gap-4 border-b border-border/80 pb-5 sm:flex-row sm:items-center">
+      <div className="anim-roles-header flex flex-col justify-between gap-4 pb-2 sm:flex-row sm:items-center">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight text-foreground sm:text-3xl">
+          <h1 className="text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
             招募岗位管理
           </h1>
           <p className="mt-1 text-xs text-muted-foreground sm:text-sm">
@@ -206,7 +206,7 @@ export function RolesPage() {
       {feedback && (
         <div
           role="status"
-          className="rounded-md border border-emerald-500/30 bg-emerald-500/10 p-3 text-xs font-medium text-emerald-800 dark:text-emerald-300"
+          className="rounded-full border border-emerald-500/10 bg-emerald-50 p-3 text-xs font-medium text-emerald-800 dark:text-emerald-300"
         >
           {feedback}
         </div>

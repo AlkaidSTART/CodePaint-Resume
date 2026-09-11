@@ -3,22 +3,55 @@
 @theme {
   --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
   --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+
+  --color-workspace: #f5f7f7;
+  --color-surface: #ffffff;
+  --color-ink: #17212b;
+  --color-muted: #66727f;
+  --color-subtle: #8a95a1;
+  --color-line: #dfe5e8;
+  --color-accent: #0f7186;
+  --color-accent-strong: #0a596a;
+  --color-accent-soft: #e9f5f7;
 }
 
 @layer base {
   html {
-    background-color: #000000;
+    background-color: var(--color-workspace);
   }
+
   body {
     margin: 0;
-    background-color: #000000;
-    color: #e2e8f0;
+    background-color: var(--color-workspace);
+    color: var(--color-ink);
     font-family: var(--font-sans);
+    color-scheme: light;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
-    color-scheme: dark;
   }
+
   * {
     box-sizing: border-box;
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--color-accent);
+    outline-offset: 2px;
+  }
+
+  button,
+  a {
+    -webkit-tap-highlight-color: transparent;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
   }
 }
